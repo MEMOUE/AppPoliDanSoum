@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Saisie des Résultats{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto">
+    <!-- En-tête -->
+    <div class="bg-gradient-to-r from-green-600 to-green-800 rounded-2xl shadow-2xl p-8 text-white mb-8">
+        <h1 class="text-4xl font-bold mb-2">✍️ Saisie des Résultats</h1>
+        <p class="text-xl text-green-100">Enregistrez les résultats de votre bureau de vote</p>
+    </div>
+
+    {% if no_bureau %}
+        <!-- Aucun bureau affecté -->
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <svg class="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-semibold text-yellow-800">Aucun bureau de vote affecté</h3>
+                    <p class="text-yellow-700 mt-2">
+                        Votre compte n'a pas encore été affecté à un bureau de vote. 
+                        Veuillez contacter l'administrateur pour qu'un bureau vous soit assigné.
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <!-- Informations du bureau -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">📍 Votre Bureau de Vote</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-600 font-semibold">Centre de vote</p>
+                    <p class="text-lg font-bold text-gray-800 mt-1">{{ bureau.centre_vote.nom }}</p>
+                </div>
+                <div class="bg-green-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-600 font-semibold">Bureau n°</p>
+                    <p class="text-lg font-bold text-gray-800 mt-1">{{ bureau.numero }}</p>
+                </div>
+                <div class="bg-purple-50 rounded-lg p-4">
+                    <p class="text-sm text-gray-600 font-semibold">Inscrits</p>
+                    <p class="text-lg font-bold text-gray-800 mt-1">{{ bureau.nombre_inscrits }}</p>
+                </div>
+            </div>
+            <div class="mt-4 text-sm text-gray-600">
+                <p><strong>Sous-préfecture :</strong> {{ bureau.centre_vote.sous_prefecture.nom }}</p>
+                <p><strong>Département :</strong> {{ bureau.centre_vote.sous_prefecture.departement.nom }}</p>
+            </div>
+        </div>
+
+        <!-- Liste des candidats -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">📊 Candidats</h2>
+            
+            {% if candidats %}
+                <div class="space-y-4">
+                    {% for candidat in candidats %}
+                        <div class="border rounded-lg p-6 hover:shadow-lg transition {% if candidat.id in resultats_dict %}bg-green-50 border-green-300{% else %}bg-gray-50 border-gray-200{% endif %}">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center space-x-4">
+                                    <div class="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center">
+                                        <span class="text-2xl">👤</span>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl font-bold text-gray-800">
+                                            {{ candidat.get_full_name }}
+                                        </h3>
+                                        {% if candidat.id in resultats_dict %}
+                                            <span class="inline-block mt-1 px-3 py-1 bg-green-500 text-white text-sm rounded-full">
+                                                ✓ Résultat enregistré
+                                            </span>
+                                        {% else %}
+                                            <span class="inline-block mt-1 px-3 py-1 bg-gray-400 text-white text-sm rounded-full">
+                                                En attente
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                {% if candidat.id in resultats_dict %}
+                                    <div class="text-right">
+                                        <p class="text-3xl font-bold text-green-600">
+                                            {{ resultats_dict|get_item:candidat.id|attr:"nombre_voix" }}
+                                        </p>
+                                        <p class="text-sm text-gray-600">voix</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Bouton pour ouvrir le formulaire -->
+                            <button 
+                                onclick="toggleForm({{ candidat.id }})"
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition">
+                                {% if candidat.id in resultats_dict %}
+                                    ✏️ Modifier le résultat
+                                {% else %}
+                                    ➕ Ajouter un résultat
+                                {% endif %}
+                            </button>
+
+                            <!-- Formulaire (caché par défaut) -->
+                            <div id="form-{{ candidat.id }}" class="hidden mt-6 border-t pt-6">
+                                <form method="post" enctype="multipart/form-data" class="space-y-4">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="candidat_id" value="{{ candidat.id }}">
+                                    
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                            Nombre de voix
+                                        </label>
+                                        <input 
+                                            type="number" 
+                                            name="nombre_voix" 
+                                            min="0" 
+                                            max="{{ bureau.nombre_inscrits }}"
+                                            value="{% if candidat.id in resultats_dict %}{{ resultats_dict|get_item:candidat.id|attr:'nombre_voix' }}{% endif %}"
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                                            placeholder="Nombre de voix obtenues"
+                                            required>
+                                        <p class="text-xs text-gray-500 mt-1">Maximum : {{ bureau.nombre_inscrits }} inscrits</p>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                            Photo du procès-verbal
+                                        </label>
+                                        <input 
+                                            type="file" 
+                                            name="photo_pv" 
+                                            accept="image/*"
+                                            capture="environment"
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                                            {% if candidat.id not in resultats_dict %}required{% endif %}>
+                                        {% if candidat.id in resultats_dict and resultats_dict|get_item:candidat.id|attr:"photo_pv" %}
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                ✓ Photo déjà enregistrée (laisser vide pour conserver)
+                                            </p>
+                                        {% else %}
+                                            <p class="text-xs text-gray-500 mt-1">
+                                                Prenez une photo claire du procès-verbal officiel
+                                            </p>
+                                        {% endif %}
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                            Observations (optionnel)
+                                        </label>
+                                        <textarea 
+                                            name="observations" 
+                                            rows="3"
+                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
+                                            placeholder="Remarques ou observations particulières">{% if candidat.id in resultats_dict %}{{ resultats_dict|get_item:candidat.id|attr:"observations" }}{% endif %}</textarea>
+                                    </div>
+
+                                    <div class="flex space-x-3">
+                                        <button 
+                                            type="submit" 
+                                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
+                                            💾 Enregistrer
+                                        </button>
+                                        <button 
+                                            type="button"
+                                            onclick="toggleForm({{ candidat.id }})"
+                                            class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 rounded-lg transition">
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <p class="text-gray-600">Aucun candidat enregistré dans le système.</p>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleForm(candidatId) {
+        const form = document.getElementById('form-' + candidatId);
+        if (form.classList.contains('hidden')) {
+            // Fermer tous les autres formulaires
+            document.querySelectorAll('[id^="form-"]').forEach(f => {
+                if (f.id !== 'form-' + candidatId) {
+                    f.classList.add('hidden');
+                }
+            });
+            // Ouvrir ce formulaire
+            form.classList.remove('hidden');
+            form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            form.classList.add('hidden');
+        }
+    }
+</script>
+
+<!-- Template filter personnalisé simulé via attributs data -->
+<script>
+    // Helper pour accéder aux dictionnaires dans les templates
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Saisie des résultats chargée');
+    });
+</script>
+{% endblock %}
