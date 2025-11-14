@@ -16,7 +16,7 @@ def home(request):
         'total_sous_prefectures': SousPrefecture.objects.count(),
         'resultats_saisis': Resultat.objects.count(),
     }
-    return render(request, 'myApplication/home.html', context)
+    return render(request, "home.html")
 
 
 def login_view(request):
@@ -48,7 +48,7 @@ def login_view(request):
     else:
         form = LoginForm()
     
-    return render(request, 'myApplication/login.html', {'form': form})
+    return render(request, 'login.html', {'form': form})
 
 
 @login_required
@@ -128,7 +128,7 @@ def saisie_resultat(request):
         'form': ResultatForm(),
     }
     
-    return render(request, 'myApplication/saisie_resultat.html', context)
+    return render(request, 'saisie_resultat.html', context)
 
 
 @login_required
@@ -211,7 +211,7 @@ def dashboard_candidat(request):
         'stats_centre': sorted(stats_centre.values(), key=lambda x: x['total_voix'], reverse=True),
     }
     
-    return render(request, 'myApplication/dashboard_candidat.html', context)
+    return render(request, 'dashboard_candidat.html', context)
 
 
 @login_required
@@ -232,4 +232,4 @@ def detail_bureau(request, bureau_id):
         'resultat': resultat,
     }
     
-    return render(request, 'myApplication/detail_bureau.html', context)
+    return render(request, 'detail_bureau.html', context)
