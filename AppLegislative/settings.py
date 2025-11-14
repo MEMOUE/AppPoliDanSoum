@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'tailwind',
     'myApplication',
+    'django_extensions',
+    
 ]
 
 MIDDLEWARE = [

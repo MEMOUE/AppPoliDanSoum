@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - {{ candidat.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- En-tête du candidat -->
+    <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-2xl p-8 text-white mb-8">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <div class="bg-white rounded-full w-20 h-20 flex items-center justify-center text-blue-600 text-4xl font-bold">
+                    {{ candidat.numero_candidat|default:"👤" }}
+                </div>
+                <div>
+                    <h1 class="text-4xl font-bold mb-2">{{ candidat.get_full_name }}</h1>
+                    <p class="text-xl text-blue-100">{{ candidat.parti_politique|default:"Candidat Indépendant" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistiques globales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-semibold uppercase">Total Voix</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ total_voix|floatformat:0 }}</p>
+                </div>
+                <div class="bg-green-100 rounded-full p-4">
+                    <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-semibold uppercase">% Voix</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ pourcentage_voix|floatformat:2 }}%</p>
+                    <p class="text-xs text-gray-500 mt-1">/ {{ total_suffrages_exprimes }} exprimés</p>
+                </div>
+                <div class="bg-purple-100 rounded-full p-4">
+                    <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-semibold uppercase">Bureaux</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ total_bureaux_avec_resultats }}</p>
+                    <p class="text-xs text-gray-500 mt-1">sur {{ total_bureaux }}</p>
+                </div>
+                <div class="bg-blue-100 rounded-full p-4">
+                    <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-semibold uppercase">Couverture</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ taux_couverture }}%</p>
+                </div>
+                <div class="bg-orange-100 rounded-full p-4">
+                    <svg class="w-8 h-8 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3zm11 4a1 1 0 10-2 0v4a1 1 0 102 0V7zm-3 1a1 1 0 10-2 0v3a1 1 0 102 0V8zM8 9a1 1 0 00-2 0v2a1 1 0 102 0V9z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-semibold uppercase">Participation</p>
+                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ taux_participation|floatformat:1 }}%</p>
+                    <p class="text-xs text-gray-500 mt-1">{{ total_votants }} / {{ total_inscrits }}</p>
+                </div>
+                <div class="bg-yellow-100 rounded-full p-4">
+                    <svg class="w-8 h-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résultats par Sous-préfecture -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">📊 Résultats par Sous-préfecture</h2>
+        {% if stats_sous_prefecture %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sous-préfecture</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Département</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Bureaux</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Voix obtenues</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Suffrages exprimés</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">% obtenu</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for stat in stats_sous_prefecture %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900">{{ stat.nom }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-600">{{ stat.departement }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="text-sm text-gray-900">{{ stat.nombre_bureaux }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="text-sm font-bold text-green-600">{{ stat.total_voix|floatformat:0 }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="text-sm text-gray-900">{{ stat.suffrages_exprimes|floatformat:0 }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
+                                    {% if stat.pourcentage >= 50 %}bg-green-100 text-green-800
+                                    {% elif stat.pourcentage >= 30 %}bg-blue-100 text-blue-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ stat.pourcentage|floatformat:2 }}%
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-600 text-center py-8">Aucun résultat enregistré</p>
+        {% endif %}
+    </div>
+
+    <!-- Top 10 Centres -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">🏆 Top 10 des Centres de Vote</h2>
+        {% if stats_centre %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">#</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Centre</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sous-préfecture</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Bureaux</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Voix</th>
+                            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">%</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for stat in stats_centre %}
+                        <tr class="hover:bg-gray-50 transition">
+                            <td class="px-6 py-4 whitespace-nowrap text-2xl">
+                                {% if forloop.counter == 1 %}🥇
+                                {% elif forloop.counter == 2 %}🥈
+                                {% elif forloop.counter == 3 %}🥉
+                                {% else %}{{ forloop.counter }}{% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900">{{ stat.nom }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-600">{{ stat.sous_prefecture }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="text-sm text-gray-900">{{ stat.nombre_bureaux }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <div class="text-sm font-bold text-green-600">{{ stat.total_voix|floatformat:0 }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                <span class="text-sm font-semibold">{{ stat.pourcentage|floatformat:2 }}%</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-gray-600 text-center py-8">Aucun résultat enregistré</p>
+        {% endif %}
+    </div>
+
+    <!-- Détails par bureau -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">📋 Détail par Bureau de Vote</h2>
+        {% if resultats %}
+            <div class="space-y-4">
+                {% regroup resultats by proces_verbal.bureau_vote.centre_vote.sous_prefecture as resultats_par_sous_pref %}
+                {% for groupe_sp in resultats_par_sous_pref %}
+                    <div class="border-l-4 border-blue-500 pl-4 mb-6">
+                        <h3 class="text-lg font-bold text-gray-800 mb-3">
+                            {{ groupe_sp.grouper.nom }} ({{ groupe_sp.grouper.departement.nom }})
+                        </h3>
+                        
+                        {% regroup groupe_sp.list by proces_verbal.bureau_vote.centre_vote as resultats_par_centre %}
+                        {% for groupe_centre in resultats_par_centre %}
+                            <div class="ml-4 mb-4">
+                                <h4 class="text-md font-semibold text-gray-700 mb-3">
+                                    {{ groupe_centre.grouper.nom }}
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                    {% for resultat in groupe_centre.list %}
+                                        <div class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition border {% if resultat.proces_verbal.verifie %}border-green-300{% else %}border-gray-200{% endif %}">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <span class="text-sm font-semibold text-gray-700">
+                                                    Bureau {{ resultat.proces_verbal.bureau_vote.numero }}
+                                                </span>
+                                                {% if resultat.proces_verbal.verifie %}
+                                                    <span class="text-green-500 text-xs">✓</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="space-y-1">
+                                                <div class="flex justify-between">
+                                                    <span class="text-xs text-gray-600">Voix:</span>
+                                                    <span class="text-lg font-bold text-green-600">{{ resultat.nombre_voix }}</span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span class="text-xs text-gray-600">%:</span>
+                                                    <span class="text-sm font-semibold text-blue-600">{{ resultat.get_pourcentage }}%</span>
+                                                </div>
+                                                <div class="flex justify-between">
+                                                    <span class="text-xs text-gray-600">Exprimés:</span>
+                                                    <span class="text-xs text-gray-700">{{ resultat.proces_verbal.suffrages_exprimes }}</span>
+                                                </div>
+                                            </div>
+                                            {% if resultat.proces_verbal.photo_pv %}
+                                                <button onclick="openImageModal('{{ resultat.proces_verbal.photo_pv.url }}')" class="mt-2 w-full text-blue-500 hover:text-blue-700 text-xs">
+                                                    📷 Voir PV
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <h3 class="mt-2 text-sm font-medium text-gray-900">Aucun résultat</h3>
+                <p class="mt-1 text-sm text-gray-500">Les résultats apparaîtront au fur et à mesure de leur saisie</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4" onclick="closeImageModal()">
+    <div class="relative max-w-4xl max-h-full">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white bg-red-500 hover:bg-red-600 rounded-full w-10 h-10 flex items-center justify-center text-2xl z-10">×</button>
+        <img id="modalImage" src="" alt="PV" class="max-w-full max-h-screen rounded-lg">
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openImageModal(url) {
+        document.getElementById('modalImage').src = url;
+        document.getElementById('imageModal').classList.remove('hidden');
+    }
+    function closeImageModal() {
+        document.getElementById('imageModal').classList.add('hidden');
+    }
+    document.addEventListener('keydown', (e) => e.key === 'Escape' && closeImageModal());
+</script>
+{% endblock %}

@@ -1,14 +1,32 @@
 {% extends 'base.html' %}
-{% load custom_filters %}
 
-{% block title %}Saisie des Résultats{% endblock %}
+{% block title %}Saisie du Procès-Verbal{% endblock %}
+
+{% block extra_css %}
+<style>
+    .candidat-row:hover {
+        background-color: #f3f4f6;
+    }
+    #suffrages-display {
+        transition: all 0.3s ease;
+    }
+    .alert-danger {
+        animation: shake 0.5s;
+    }
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <!-- En-tête -->
     <div class="bg-gradient-to-r from-green-600 to-green-800 rounded-2xl shadow-2xl p-8 text-white mb-8">
-        <h1 class="text-4xl font-bold mb-2">✍️ Saisie des Résultats</h1>
-        <p class="text-xl text-green-100">Enregistrez les résultats de votre bureau de vote</p>
+        <h1 class="text-4xl font-bold mb-2">✍️ Saisie du Procès-Verbal</h1>
+        <p class="text-xl text-green-100">Enregistrez les résultats complets de votre bureau de vote</p>
     </div>
 
     {% if no_bureau %}
@@ -24,7 +42,7 @@
                     <h3 class="text-lg font-semibold text-yellow-800">Aucun bureau de vote affecté</h3>
                     <p class="text-yellow-700 mt-2">
                         Votre compte n'a pas encore été affecté à un bureau de vote. 
-                        Veuillez contacter l'administrateur pour qu'un bureau vous soit assigné.
+                        Veuillez contacter l'administrateur.
                     </p>
                 </div>
             </div>
@@ -43,175 +61,322 @@
                     <p class="text-lg font-bold text-gray-800 mt-1">{{ bureau.numero }}</p>
                 </div>
                 <div class="bg-purple-50 rounded-lg p-4">
-                    <p class="text-sm text-gray-600 font-semibold">Inscrits</p>
-                    <p class="text-lg font-bold text-gray-800 mt-1">{{ bureau.nombre_inscrits }}</p>
+                    <p class="text-sm text-gray-600 font-semibold">Sous-préfecture</p>
+                    <p class="text-sm font-bold text-gray-800 mt-1">{{ bureau.centre_vote.sous_prefecture.nom }}</p>
                 </div>
-            </div>
-            <div class="mt-4 text-sm text-gray-600">
-                <p><strong>Sous-préfecture :</strong> {{ bureau.centre_vote.sous_prefecture.nom }}</p>
-                <p><strong>Département :</strong> {{ bureau.centre_vote.sous_prefecture.departement.nom }}</p>
             </div>
         </div>
 
-        <!-- Liste des candidats -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">📊 Candidats</h2>
+        <!-- Formulaire de saisie -->
+        <form method="post" enctype="multipart/form-data" id="pv-form">
+            {% csrf_token %}
+            {{ management_form }}
             
-            {% if candidats %}
-                <div class="space-y-4">
-                    {% for candidat in candidats %}
-                        <div class="border rounded-lg p-6 hover:shadow-lg transition {% if candidat.id in resultats_dict %}bg-green-50 border-green-300{% else %}bg-gray-50 border-gray-200{% endif %}">
-                            <div class="flex items-center justify-between mb-4">
-                                <div class="flex items-center space-x-4">
-                                    <div class="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center">
-                                        <span class="text-2xl">👤</span>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-xl font-bold text-gray-800">
-                                            {{ candidat.get_full_name }}
-                                        </h3>
-                                        {% if candidat.id in resultats_dict %}
-                                            <span class="inline-block mt-1 px-3 py-1 bg-green-500 text-white text-sm rounded-full">
-                                                ✓ Résultat enregistré
-                                            </span>
-                                        {% else %}
-                                            <span class="inline-block mt-1 px-3 py-1 bg-gray-400 text-white text-sm rounded-full">
-                                                En attente
-                                            </span>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                
-                                {% if candidat.id in resultats_dict %}
-                                    <div class="text-right">
-                                        <p class="text-3xl font-bold text-green-600">
-                                            {{ resultats_dict|get_item:candidat.id|attr:"nombre_voix" }}
-                                        </p>
-                                        <p class="text-sm text-gray-600">voix</p>
-                                    </div>
-                                {% endif %}
-                            </div>
+            <!-- Section 1: Données globales du PV -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">📊 Données Globales du Bureau</h2>
+                    {% if pv_existant %}
+                        <span class="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-semibold">
+                            ✓ PV enregistré
+                        </span>
+                    {% endif %}
+                </div>
 
-                            <!-- Bouton pour ouvrir le formulaire -->
-                            <button 
-                                onclick="toggleForm({{ candidat.id }})"
-                                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition">
-                                {% if candidat.id in resultats_dict %}
-                                    ✏️ Modifier le résultat
-                                {% else %}
-                                    ➕ Ajouter un résultat
-                                {% endif %}
-                            </button>
+                <!-- Nombre d'inscrits en premier -->
+                <div class="mb-6 bg-blue-50 rounded-lg p-6 border-2 border-blue-200">
+                    <label class="block text-sm font-bold text-blue-900 mb-2">
+                        📋 Nombre d'inscrits dans ce bureau <span class="text-red-500">*</span>
+                    </label>
+                    {{ pv_form.nombre_inscrits }}
+                    {% if pv_form.nombre_inscrits.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ pv_form.nombre_inscrits.errors.0 }}</p>
+                    {% endif %}
+                    <p class="text-xs text-blue-700 mt-2">
+                        ℹ️ Nombre total d'électeurs inscrits dans votre bureau (selon la liste électorale)
+                    </p>
+                </div>
 
-                            <!-- Formulaire (caché par défaut) -->
-                            <div id="form-{{ candidat.id }}" class="hidden mt-6 border-t pt-6">
-                                <form method="post" enctype="multipart/form-data" class="space-y-4">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="candidat_id" value="{{ candidat.id }}">
-                                    
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                            Nombre de voix
-                                        </label>
-                                        <input 
-                                            type="number" 
-                                            name="nombre_voix" 
-                                            min="0" 
-                                            max="{{ bureau.nombre_inscrits }}"
-                                            value="{% if candidat.id in resultats_dict %}{{ resultats_dict|get_item:candidat.id|attr:'nombre_voix' }}{% endif %}"
-                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
-                                            placeholder="Nombre de voix obtenues"
-                                            required>
-                                        <p class="text-xs text-gray-500 mt-1">Maximum : {{ bureau.nombre_inscrits }} inscrits</p>
-                                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Nombre de votants <span class="text-red-500">*</span>
+                        </label>
+                        {{ pv_form.nombre_votants }}
+                        {% if pv_form.nombre_votants.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ pv_form.nombre_votants.errors.0 }}</p>
+                        {% endif %}
+                        <p class="text-xs text-gray-500 mt-1" id="max-votants-info">Ne peut pas dépasser les inscrits</p>
+                    </div>
 
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                            Photo du procès-verbal
-                                        </label>
-                                        <input 
-                                            type="file" 
-                                            name="photo_pv" 
-                                            accept="image/*"
-                                            capture="environment"
-                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
-                                            {% if candidat.id not in resultats_dict %}required{% endif %}>
-                                        {% if candidat.id in resultats_dict and resultats_dict|get_item:candidat.id|attr:"photo_pv" %}
-                                            <p class="text-xs text-gray-500 mt-1">
-                                                ✓ Photo déjà enregistrée (laisser vide pour conserver)
-                                            </p>
-                                        {% else %}
-                                            <p class="text-xs text-gray-500 mt-1">
-                                                Prenez une photo claire du procès-verbal officiel
-                                            </p>
-                                        {% endif %}
-                                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Bulletins nuls
+                        </label>
+                        {{ pv_form.bulletins_nuls }}
+                        {% if pv_form.bulletins_nuls.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ pv_form.bulletins_nuls.errors.0 }}</p>
+                        {% endif %}
+                    </div>
 
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                            Observations (optionnel)
-                                        </label>
-                                        <textarea 
-                                            name="observations" 
-                                            rows="3"
-                                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-transparent transition duration-200"
-                                            placeholder="Remarques ou observations particulières">{% if candidat.id in resultats_dict %}{{ resultats_dict|get_item:candidat.id|attr:"observations" }}{% endif %}</textarea>
-                                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Bulletins blancs
+                        </label>
+                        {{ pv_form.bulletins_blancs }}
+                        {% if pv_form.bulletins_blancs.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ pv_form.bulletins_blancs.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
 
-                                    <div class="flex space-x-3">
-                                        <button 
-                                            type="submit" 
-                                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
-                                            💾 Enregistrer
-                                        </button>
-                                        <button 
-                                            type="button"
-                                            onclick="toggleForm({{ candidat.id }})"
-                                            class="flex-1 bg-gray-400 hover:bg-gray-500 text-white font-semibold py-3 rounded-lg transition">
-                                            Annuler
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
+                <!-- Calcul automatique des suffrages exprimés -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-gray-700">Suffrages exprimés (calculé automatiquement)</p>
+                            <p class="text-xs text-gray-600 mt-1">= Votants - Nuls - Blancs</p>
                         </div>
-                    {% endfor %}
+                        <div id="suffrages-display" class="text-3xl font-bold text-blue-600">
+                            0
+                        </div>
+                    </div>
                 </div>
-            {% else %}
-                <div class="text-center py-12">
-                    <p class="text-gray-600">Aucun candidat enregistré dans le système.</p>
+
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Photo du procès-verbal <span class="text-red-500">*</span>
+                    </label>
+                    {{ pv_form.photo_pv }}
+                    {% if pv_form.photo_pv.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ pv_form.photo_pv.errors.0 }}</p>
+                    {% endif %}
+                    {% if pv_existant and pv_existant.photo_pv %}
+                        <div class="mt-3">
+                            <p class="text-sm text-gray-600 mb-2">Photo actuelle :</p>
+                            <img src="{{ pv_existant.photo_pv.url }}" alt="PV" class="w-32 h-32 object-cover rounded border cursor-pointer" onclick="openImageModal('{{ pv_existant.photo_pv.url }}')">
+                        </div>
+                    {% endif %}
                 </div>
-            {% endif %}
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        Observations (optionnel)
+                    </label>
+                    {{ pv_form.observations }}
+                    {% if pv_form.observations.errors %}
+                        <p class="mt-2 text-sm text-red-600">{{ pv_form.observations.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Section 2: Résultats par candidat -->
+            <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">🎯 Résultats par Candidat</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">N°</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidat</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Parti</th>
+                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Nombre de voix</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for candidat, form in candidats_forms %}
+                            <tr class="candidat-row">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full text-blue-600 font-bold">
+                                        {{ candidat.numero_candidat|default:forloop.counter }}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-bold text-gray-900">{{ candidat.get_full_name }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-600">{{ candidat.parti_politique|default:"Indépendant" }}</div>
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    {{ form.nombre_voix }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-gray-100">
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-right font-bold text-gray-700">
+                                    TOTAL DES VOIX :
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <div id="total-voix" class="text-2xl font-bold text-gray-900">0</div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Validation visuelle -->
+                <div id="validation-message" class="mt-6 p-4 rounded-lg border hidden">
+                    <p class="font-semibold"></p>
+                </div>
+            </div>
+
+            <!-- Bouton de soumission -->
+            <div class="flex space-x-4">
+                <button 
+                    type="submit" 
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105">
+                    <span class="text-lg">💾 {% if pv_existant %}Mettre à jour{% else %}Enregistrer{% endif %} le procès-verbal</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Aide -->
+        <div class="mt-8 bg-gray-50 rounded-xl p-6 border border-gray-200">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">💡 Instructions</h3>
+            <ul class="space-y-2 text-gray-700">
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span><strong>IMPORTANT :</strong> Renseignez d'abord le <strong>nombre d'inscrits</strong> de votre bureau (selon la liste électorale)</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span>Remplissez ensuite les données globales (votants, nuls, blancs)</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span>Saisissez le nombre de voix pour chaque candidat</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span>La somme des voix doit égaler les suffrages exprimés</span>
+                </li>
+                <li class="flex items-start">
+                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span>La photo du PV doit être nette et lisible</span>
+                </li>
+            </ul>
         </div>
     {% endif %}
+</div>
+
+<!-- Modal pour agrandir la photo -->
+<div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4" onclick="closeImageModal()">
+    <div class="relative max-w-4xl max-h-full">
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white bg-red-500 hover:bg-red-600 rounded-full w-10 h-10 flex items-center justify-center text-2xl z-10">
+            ×
+        </button>
+        <img id="modalImage" src="" alt="Procès-verbal" class="max-w-full max-h-screen rounded-lg">
+    </div>
 </div>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    function toggleForm(candidatId) {
-        const form = document.getElementById('form-' + candidatId);
-        if (form.classList.contains('hidden')) {
-            // Fermer tous les autres formulaires
-            document.querySelectorAll('[id^="form-"]').forEach(f => {
-                if (f.id !== 'form-' + candidatId) {
-                    f.classList.add('hidden');
-                }
-            });
-            // Ouvrir ce formulaire
-            form.classList.remove('hidden');
-            form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    // Mise à jour de l'info du maximum de votants
+    function updateMaxVotantsInfo() {
+        const inscrits = parseInt(document.getElementById('id_nombre_inscrits_bureau').value) || 0;
+        const maxInfo = document.getElementById('max-votants-info');
+        if (inscrits > 0) {
+            maxInfo.textContent = `Maximum: ${inscrits} (nombre d'inscrits)`;
+            maxInfo.classList.remove('text-gray-500');
+            maxInfo.classList.add('text-blue-600', 'font-semibold');
         } else {
-            form.classList.add('hidden');
+            maxInfo.textContent = 'Renseignez d\'abord le nombre d\'inscrits';
+            maxInfo.classList.remove('text-blue-600', 'font-semibold');
+            maxInfo.classList.add('text-red-500', 'font-semibold');
         }
     }
-</script>
-
-<!-- Template filter personnalisé simulé via attributs data -->
-<script>
-    // Helper pour accéder aux dictionnaires dans les templates
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('Saisie des résultats chargée');
+    
+    // Calcul automatique des suffrages exprimés
+    function updateSuffraresExprimes() {
+        const votants = parseInt(document.getElementById('id_nombre_votants').value) || 0;
+        const nuls = parseInt(document.getElementById('id_bulletins_nuls').value) || 0;
+        const blancs = parseInt(document.getElementById('id_bulletins_blancs').value) || 0;
+        
+        const suffrages = votants - nuls - blancs;
+        document.getElementById('suffrages-display').textContent = suffrages >= 0 ? suffrages : 0;
+        
+        validateTotalVoix();
+    }
+    
+    // Calcul automatique du total des voix
+    function updateTotalVoix() {
+        const voixInputs = document.querySelectorAll('input[name$="-nombre_voix"]');
+        let total = 0;
+        
+        voixInputs.forEach(input => {
+            total += parseInt(input.value) || 0;
+        });
+        
+        document.getElementById('total-voix').textContent = total;
+        validateTotalVoix();
+    }
+    
+    // Validation visuelle
+    function validateTotalVoix() {
+        const suffrages = parseInt(document.getElementById('suffrages-display').textContent) || 0;
+        const total = parseInt(document.getElementById('total-voix').textContent) || 0;
+        const messageDiv = document.getElementById('validation-message');
+        const messageText = messageDiv.querySelector('p');
+        
+        if (suffrages === 0) {
+            messageDiv.classList.add('hidden');
+            return;
+        }
+        
+        if (total === suffrages) {
+            messageDiv.classList.remove('hidden', 'bg-red-50', 'border-red-500');
+            messageDiv.classList.add('bg-green-50', 'border-green-500');
+            messageText.classList.remove('text-red-700');
+            messageText.classList.add('text-green-700');
+            messageText.textContent = `✓ Validation OK : ${total} voix = ${suffrages} suffrages exprimés`;
+        } else {
+            messageDiv.classList.remove('hidden', 'bg-green-50', 'border-green-500');
+            messageDiv.classList.add('bg-red-50', 'border-red-500');
+            messageText.classList.remove('text-green-700');
+            messageText.classList.add('text-red-700');
+            const diff = Math.abs(total - suffrages);
+            messageText.textContent = `⚠ Attention : ${total} voix ≠ ${suffrages} suffrages exprimés (différence : ${diff})`;
+        }
+    }
+    
+    // Event listeners
+    document.getElementById('id_nombre_inscrits_bureau').addEventListener('input', updateMaxVotantsInfo);
+    document.getElementById('id_nombre_votants').addEventListener('input', updateSuffraresExprimes);
+    document.getElementById('id_bulletins_nuls').addEventListener('input', updateSuffraresExprimes);
+    document.getElementById('id_bulletins_blancs').addEventListener('input', updateSuffraresExprimes);
+    
+    const voixInputs = document.querySelectorAll('input[name$="-nombre_voix"]');
+    voixInputs.forEach(input => {
+        input.addEventListener('input', updateTotalVoix);
+    });
+    
+    // Initialisation
+    updateMaxVotantsInfo();
+    updateSuffraresExprimes();
+    updateTotalVoix();
+    
+    // Modal functions
+    function openImageModal(imageUrl) {
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        modalImage.src = imageUrl;
+        modal.classList.remove('hidden');
+    }
+    
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.add('hidden');
+    }
+    
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeImageModal();
+        }
     });
 </script>
 {% endblock %}

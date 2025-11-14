@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
+from django.db.models import Sum
 from .models import (
     Departement, SousPrefecture, CentreVote, 
-    BureauVote, User, Resultat
+    BureauVote, User, ProcesVerbal, ResultatCandidat
 )
 
 
@@ -45,7 +46,7 @@ class CentreVoteAdmin(admin.ModelAdmin):
 
 @admin.register(BureauVote)
 class BureauVoteAdmin(admin.ModelAdmin):
-    list_display = ['numero', 'centre_vote', 'sous_prefecture', 'nombre_inscrits', 'resultats_saisis']
+    list_display = ['numero', 'centre_vote', 'sous_prefecture', 'nombre_inscrits', 'pv_saisi']
     list_filter = ['centre_vote__sous_prefecture__departement', 'centre_vote__sous_prefecture']
     search_fields = ['numero', 'centre_vote__nom']
     
@@ -53,68 +54,83 @@ class BureauVoteAdmin(admin.ModelAdmin):
         return obj.centre_vote.sous_prefecture.nom
     sous_prefecture.short_description = "Sous-préfecture"
     
-    def resultats_saisis(self, obj):
-        count = obj.resultats.count()
-        if count > 0:
-            return format_html('<span style="color: green;">✓ {} résultat(s)</span>', count)
-        return format_html('<span style="color: red;">✗ Aucun résultat</span>')
-    resultats_saisis.short_description = "Résultats"
+    def pv_saisi(self, obj):
+        pv = obj.get_proces_verbal()
+        if pv:
+            return format_html('<span style="color: green;">✓ PV saisi</span>')
+        return format_html('<span style="color: red;">✗ Aucun PV</span>')
+    pv_saisi.short_description = "Statut"
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    list_display = ['username', 'email', 'first_name', 'last_name', 'role', 'telephone', 'bureau_affecte', 'is_active']
+    list_display = ['username', 'email', 'first_name', 'last_name', 'role', 'numero_candidat', 'parti_politique', 'bureau_affecte', 'is_active']
     list_filter = ['role', 'is_active', 'is_staff']
-    search_fields = ['username', 'first_name', 'last_name', 'email', 'telephone']
+    search_fields = ['username', 'first_name', 'last_name', 'email', 'telephone', 'parti_politique']
+    ordering = ['numero_candidat', 'first_name']
     
     fieldsets = BaseUserAdmin.fieldsets + (
         ('Informations électorales', {
-            'fields': ('role', 'telephone', 'bureau_vote')
+            'fields': ('role', 'numero_candidat', 'parti_politique', 'telephone', 'bureau_vote')
         }),
     )
     
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ('Informations électorales', {
-            'fields': ('role', 'telephone', 'bureau_vote', 'first_name', 'last_name', 'email')
+            'fields': ('role', 'numero_candidat', 'parti_politique', 'telephone', 'bureau_vote', 'first_name', 'last_name', 'email')
         }),
     )
     
     def bureau_affecte(self, obj):
         if obj.role == 'representant' and obj.bureau_vote:
-            return format_html(
-                '<span style="color: green;">✓ {}</span>', 
-                obj.bureau_vote
-            )
+            return format_html('<span style="color: green;">✓ {}</span>', obj.bureau_vote)
         elif obj.role == 'representant':
             return format_html('<span style="color: orange;">⚠ Non affecté</span>')
         return '-'
     bureau_affecte.short_description = "Bureau affecté"
+
+
+class ResultatCandidatInline(admin.TabularInline):
+    model = ResultatCandidat
+    extra = 0
+    fields = ['candidat', 'nombre_voix', 'pourcentage']
+    readonly_fields = ['pourcentage']
     
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.select_related('bureau_vote', 'bureau_vote__centre_vote', 'bureau_vote__centre_vote__sous_prefecture')
+    def pourcentage(self, obj):
+        if obj.pk:
+            return f"{obj.get_pourcentage()}%"
+        return "-"
+    pourcentage.short_description = "% des voix"
 
 
-@admin.register(Resultat)
-class ResultatAdmin(admin.ModelAdmin):
+@admin.register(ProcesVerbal)
+class ProcesVerbalAdmin(admin.ModelAdmin):
     list_display = [
-        'candidat', 'bureau_vote', 'nombre_voix', 
-        'representant', 'verifie', 'apercu_photo', 'date_saisie'
+        'bureau_vote', 'nombre_votants', 'bulletins_nuls', 'bulletins_blancs',
+        'suffrages_exprimes', 'representant', 'verifie', 'apercu_photo', 'date_saisie'
     ]
     list_filter = [
-        'verifie', 'candidat', 'date_saisie',
-        'bureau_vote__centre_vote__sous_prefecture__departement'
+        'verifie', 'date_saisie',
+        'bureau_vote__centre_vote__sous_prefecture__departement',
+        'bureau_vote__centre_vote__sous_prefecture'
     ]
     search_fields = [
-        'candidat__first_name', 'candidat__last_name',
         'bureau_vote__numero', 'bureau_vote__centre_vote__nom',
         'representant__first_name', 'representant__last_name'
     ]
-    readonly_fields = ['date_saisie', 'date_modification', 'apercu_photo_large']
+    readonly_fields = ['date_saisie', 'date_modification', 'apercu_photo_large', 'taux_participation', 'taux_nuls']
+    inlines = [ResultatCandidatInline]
     
     fieldsets = (
-        ('Informations principales', {
-            'fields': ('candidat', 'bureau_vote', 'representant', 'nombre_voix')
+        ('Bureau de vote', {
+            'fields': ('bureau_vote', 'representant')
+        }),
+        ('Données du PV', {
+            'fields': ('nombre_votants', 'bulletins_nuls', 'bulletins_blancs', 'suffrages_exprimes')
+        }),
+        ('Statistiques', {
+            'fields': ('taux_participation', 'taux_nuls'),
+            'classes': ('collapse',)
         }),
         ('Justificatif', {
             'fields': ('photo_pv', 'apercu_photo_large')
@@ -140,18 +156,54 @@ class ResultatAdmin(admin.ModelAdmin):
     def apercu_photo_large(self, obj):
         if obj.photo_pv:
             return format_html(
-                '<img src="{}" style="max-width: 500px; max-height: 500px; border-radius: 8px;" />',
+                '<img src="{}" style="max-width: 600px; max-height: 600px; border-radius: 8px;" />',
                 obj.photo_pv.url
             )
         return 'Aucune photo'
     apercu_photo_large.short_description = "Aperçu du procès-verbal"
     
-    def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        return qs.select_related(
-            'candidat', 'representant', 'bureau_vote',
-            'bureau_vote__centre_vote', 'bureau_vote__centre_vote__sous_prefecture'
-        )
+    def taux_participation(self, obj):
+        return f"{obj.get_taux_participation()}%"
+    taux_participation.short_description = "Taux de participation"
+    
+    def taux_nuls(self, obj):
+        return f"{obj.get_taux_bulletins_nuls()}%"
+    taux_nuls.short_description = "Taux de bulletins nuls"
+
+
+@admin.register(ResultatCandidat)
+class ResultatCandidatAdmin(admin.ModelAdmin):
+    list_display = ['candidat', 'bureau', 'nombre_voix', 'pourcentage', 'verifie', 'date_saisie']
+    list_filter = [
+        'proces_verbal__verifie',
+        'candidat',
+        'proces_verbal__date_saisie',
+        'proces_verbal__bureau_vote__centre_vote__sous_prefecture__departement'
+    ]
+    search_fields = [
+        'candidat__first_name', 'candidat__last_name',
+        'proces_verbal__bureau_vote__numero',
+        'proces_verbal__bureau_vote__centre_vote__nom'
+    ]
+    readonly_fields = ['pourcentage', 'date_saisie']
+    
+    def bureau(self, obj):
+        return obj.proces_verbal.bureau_vote
+    bureau.short_description = "Bureau de vote"
+    
+    def pourcentage(self, obj):
+        return f"{obj.get_pourcentage()}%"
+    pourcentage.short_description = "% des suffrages exprimés"
+    
+    def verifie(self, obj):
+        if obj.proces_verbal.verifie:
+            return format_html('<span style="color: green;">✓ Vérifié</span>')
+        return format_html('<span style="color: orange;">⏳ En attente</span>')
+    verifie.short_description = "Statut"
+    
+    def date_saisie(self, obj):
+        return obj.proces_verbal.date_saisie
+    date_saisie.short_description = "Date de saisie"
 
 
 # Personnalisation du site admin

@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+
+import os
+import django
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "AppLegislative.settings")
+django.setup()
+
+
 """
 Script d'importation des données électorales du département de DANANÉ
 Pour utiliser ce script: python manage.py shell < import_danane.py
