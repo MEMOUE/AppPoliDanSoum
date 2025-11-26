@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Résultats Électoraux - {{ departement }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 11pt;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            color: #FF8C00;
+            font-size: 24pt;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #4472C4;
+            font-size: 16pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #4472C4;
+            padding-bottom: 5px;
+        }
+
+        .header-info {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th {
+            background-color: #4472C4;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        .number {
+            text-align: right;
+        }
+
+        .rank {
+            font-size: 18pt;
+            text-align: center;
+        }
+
+        .total-row {
+            background-color: #e6e6e6 !important;
+            font-weight: bold;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            padding: 10px 0;
+            border-top: 1px solid #ccc;
+        }
+
+        .percentage {
+            background-color: #d4edda;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<h1>🗳️ Résultats Électoraux</h1>
+<div class="header-info">
+    <p><strong>Département de {{ departement }}</strong></p>
+    <p>Élections Législatives 2025</p>
+    <p>Document généré le {% now "d/m/Y à H:i" %}</p>
+</div>
+
+<h2>📊 Classement des Candidats</h2>
+<table>
+    <thead>
+    <tr>
+        <th style="width: 10%;">Rang</th>
+        <th style="width: 10%;">N°</th>
+        <th style="width: 30%;">Candidat</th>
+        <th style="width: 25%;">Parti</th>
+        <th style="width: 15%;">Voix</th>
+        <th style="width: 10%;">%</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for candidat in candidats %}
+        <tr>
+            <td class="rank">
+                {% if forloop.counter == 1 %}🥇
+                {% elif forloop.counter == 2 %}🥈
+                {% elif forloop.counter == 3 %}🥉
+                {% else %}{{ forloop.counter }}{% endif %}
+            </td>
+            <td style="text-align: center;">
+                <strong>{{ candidat.numero_candidat|default:forloop.counter }}</strong>
+            </td>
+            <td>
+                <strong>{{ candidat.get_full_name }}</strong>
+            </td>
+            <td>
+                {{ candidat.parti_politique|default:"Indépendant" }}
+            </td>
+            <td class="number">
+                <strong>{{ candidat.total_voix|default:"0"|floatformat:0 }}</strong>
+            </td>
+            <td class="number">
+                    <span class="percentage">
+                        {% widthratio candidat.total_voix total_suffrages_exprimes 100 %}%
+                    </span>
+            </td>
+        </tr>
+    {% endfor %}
+    <tr class="total-row">
+        <td colspan="4" style="text-align: right;">
+            TOTAL SUFFRAGES EXPRIMÉS :
+        </td>
+        <td class="number">
+            {{ total_suffrages_exprimes|floatformat:0 }}
+        </td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    <p>© 2025 Gestion des Résultats Électoraux - Département de {{ departement }}</p>
+    <p>Document officiel - Confidentiel</p>
+</div>
+</body>
+</html>

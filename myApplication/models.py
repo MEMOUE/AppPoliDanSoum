@@ -272,3 +272,184 @@ class ResultatCandidat(models.Model):
         if self.proces_verbal.suffrages_exprimes == 0:
             return 0
         return round((self.nombre_voix / self.proces_verbal.suffrages_exprimes) * 100, 2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Ajout au fichier models.py existant
+
+class AuditLog(models.Model):
+    """Journal des modifications pour traçabilité"""
+
+    ACTION_CHOICES = [
+        ('CREATE', 'Création'),
+        ('UPDATE', 'Modification'),
+        ('DELETE', 'Suppression'),
+        ('VIEW', 'Consultation'),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='audit_logs'
+    )
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    model_name = models.CharField(max_length=50)
+    object_id = models.IntegerField()
+    object_repr = models.CharField(max_length=200, blank=True)
+    changes = models.JSONField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.CharField(max_length=500, blank=True)
+
+    class Meta:
+        verbose_name = "Journal d'audit"
+        verbose_name_plural = "Journaux d'audit"
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['-timestamp']),
+            models.Index(fields=['model_name', 'object_id']),
+        ]
+
+    def __str__(self):
+        user_str = self.user.get_full_name() if self.user else "Système"
+        return f"{user_str} - {self.get_action_display()} - {self.model_name} #{self.object_id} - {self.timestamp.strftime('%d/%m/%Y %H:%M')}"
+
+    @classmethod
+    def log_action(cls, user, action, instance, changes=None, request=None):
+        """
+        Méthode utilitaire pour logger une action
+
+        Usage:
+            AuditLog.log_action(
+                user=request.user,
+                action='UPDATE',
+                instance=pv_instance,
+                changes={'nombre_votants': {'old': 100, 'new': 105}},
+                request=request
+            )
+        """
+        ip_address = None
+        user_agent = ""
+
+        if request:
+            # Obtenir l'IP
+            x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+            if x_forwarded_for:
+                ip_address = x_forwarded_for.split(',')[0]
+            else:
+                ip_address = request.META.get('REMOTE_ADDR')
+
+            # Obtenir le User-Agent
+            user_agent = request.META.get('HTTP_USER_AGENT', '')[:500]
+
+        return cls.objects.create(
+            user=user,
+            action=action,
+            model_name=instance.__class__.__name__,
+            object_id=instance.pk,
+            object_repr=str(instance)[:200],
+            changes=changes,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+
+
+# ========================================
+# FONCTION UTILITAIRE POUR DÉTECTER LES CHANGEMENTS
+# ========================================
+
+def get_model_changes(old_instance, new_instance, fields_to_track):
+    """
+    Compare deux instances d'un modèle et retourne les changements
+
+    Args:
+        old_instance: Instance avant modification
+        new_instance: Instance après modification
+        fields_to_track: Liste des champs à surveiller
+
+    Returns:
+        dict: Dictionnaire des changements {field: {'old': value, 'new': value}}
+    """
+    changes = {}
+
+    for field in fields_to_track:
+        old_value = getattr(old_instance, field, None)
+        new_value = getattr(new_instance, field, None)
+
+        if old_value != new_value:
+            changes[field] = {
+                'old': str(old_value),
+                'new': str(new_value)
+            }
+
+    return changes if changes else None
+
+
+# ========================================
+# EXEMPLE D'UTILISATION DANS views.py
+# ========================================
+
+"""
+Dans la vue saisie_resultat, après la sauvegarde du PV :
+
+# Déterminer l'action
+action = 'UPDATE' if pv_existant else 'CREATE'
+
+# Tracker les changements si c'est une modification
+changes = None
+if pv_existant:
+    fields_to_track = ['nombre_votants', 'bulletins_nuls', 'bulletins_blancs', 'suffrages_exprimes']
+    changes = get_model_changes(pv_existant, pv, fields_to_track)
+
+# Logger l'action
+AuditLog.log_action(
+    user=request.user,
+    action=action,
+    instance=pv,
+    changes=changes,
+    request=request
+)
+
+messages.success(request, f'✅ Procès-verbal {action.lower()}é avec succès !')
+"""
+
+
+# ========================================
+# ADMIN POUR AUDITLOG
+# ========================================
+
+"""
+Dans admin.py :
+
+@admin.register(AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = ['timestamp', 'user', 'action', 'model_name', 'object_id', 'ip_address']
+    list_filter = ['action', 'model_name', 'timestamp']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'object_repr', 'ip_address']
+    readonly_fields = ['timestamp', 'user', 'action', 'model_name', 'object_id', 'object_repr', 'changes', 'ip_address', 'user_agent']
+    date_hierarchy = 'timestamp'
+    
+    def has_add_permission(self, request):
+        return False  # Les logs ne peuvent pas être créés manuellement
+    
+    def has_change_permission(self, request, obj=None):
+        return False  # Les logs ne peuvent pas être modifiés
+    
+    def has_delete_permission(self, request, obj=None):
+        return False  # Les logs ne peuvent pas être supprimés
+"""

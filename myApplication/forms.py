@@ -24,7 +24,7 @@ class LoginForm(AuthenticationForm):
 
 class ProcesVerbalForm(forms.ModelForm):
     """Formulaire de saisie du procès-verbal global"""
-    
+
     nombre_inscrits = forms.IntegerField(
         required=True,
         min_value=0,
@@ -38,7 +38,7 @@ class ProcesVerbalForm(forms.ModelForm):
         label='Nombre d\'inscrits dans ce bureau',
         help_text='Nombre total d\'électeurs inscrits dans ce bureau de vote'
     )
-    
+
     class Meta:
         model = ProcesVerbal
         fields = ['nombre_votants', 'bulletins_nuls', 'bulletins_blancs', 'photo_pv', 'observations']
@@ -82,11 +82,11 @@ class ProcesVerbalForm(forms.ModelForm):
             'photo_pv': 'Photo du procès-verbal',
             'observations': 'Observations'
         }
-    
+
     def __init__(self, *args, **kwargs):
         self.bureau_vote = kwargs.pop('bureau_vote', None)
         super().__init__(*args, **kwargs)
-        
+
         # Définir les valeurs par défaut pour les champs si aucune instance n'existe
         if not self.instance.pk:
             self.fields['bulletins_nuls'].initial = 0
@@ -98,58 +98,58 @@ class ProcesVerbalForm(forms.ModelForm):
             # Si on modifie, charger le nombre d'inscrits actuel du bureau
             if self.bureau_vote:
                 self.fields['nombre_inscrits'].initial = self.bureau_vote.nombre_inscrits
-    
+
     def clean_nombre_inscrits(self):
         nombre_inscrits = self.cleaned_data.get('nombre_inscrits')
-        
+
         if nombre_inscrits is None:
             raise ValidationError("Ce champ est obligatoire.")
-        
+
         if nombre_inscrits <= 0:
             raise ValidationError("Le nombre d'inscrits doit être supérieur à zéro.")
-        
+
         return nombre_inscrits
-    
+
     def clean_nombre_votants(self):
         nombre_votants = self.cleaned_data.get('nombre_votants')
-        
+
         if nombre_votants is None:
             raise ValidationError("Ce champ est obligatoire.")
-        
+
         if nombre_votants < 0:
             raise ValidationError("Le nombre de votants ne peut pas être négatif.")
-        
+
         return nombre_votants
-    
+
     def clean_bulletins_nuls(self):
         bulletins_nuls = self.cleaned_data.get('bulletins_nuls')
-        
+
         if bulletins_nuls is None:
             return 0
-        
+
         if bulletins_nuls < 0:
             raise ValidationError("Le nombre de bulletins nuls ne peut pas être négatif.")
-        
+
         return bulletins_nuls
-    
+
     def clean_bulletins_blancs(self):
         bulletins_blancs = self.cleaned_data.get('bulletins_blancs')
-        
+
         if bulletins_blancs is None:
             return 0
-        
+
         if bulletins_blancs < 0:
             raise ValidationError("Le nombre de bulletins blancs ne peut pas être négatif.")
-        
+
         return bulletins_blancs
-    
+
     def clean(self):
         cleaned_data = super().clean()
         nombre_inscrits = cleaned_data.get('nombre_inscrits', 0)
         nombre_votants = cleaned_data.get('nombre_votants', 0)
         bulletins_nuls = cleaned_data.get('bulletins_nuls', 0)
         bulletins_blancs = cleaned_data.get('bulletins_blancs', 0)
-        
+
         # S'assurer que les valeurs ne sont pas None
         if nombre_inscrits is None:
             nombre_inscrits = 0
@@ -159,51 +159,64 @@ class ProcesVerbalForm(forms.ModelForm):
             bulletins_nuls = 0
         if bulletins_blancs is None:
             bulletins_blancs = 0
-        
+
         # Vérifier que le nombre de votants ne dépasse pas les inscrits
         if nombre_votants > nombre_inscrits:
             raise ValidationError(
                 f"Le nombre de votants ({nombre_votants}) ne peut pas dépasser "
                 f"le nombre d'inscrits ({nombre_inscrits})."
             )
-        
+
         # Vérifier que nuls + blancs <= votants
         if (bulletins_nuls + bulletins_blancs) > nombre_votants:
             raise ValidationError(
                 f"La somme des bulletins nuls ({bulletins_nuls}) et blancs ({bulletins_blancs}) "
                 f"ne peut pas dépasser le nombre de votants ({nombre_votants})."
             )
-        
+
         return cleaned_data
-    
+
     def clean_photo_pv(self):
+        """
+        CORRECTION : Gestion correcte des ImageFieldFile et UploadedFile
+        """
         photo = self.cleaned_data.get('photo_pv')
-        
-        if photo:
+
+        if not photo:
+            return photo
+
+        # Si c'est un ImageFieldFile (fichier déjà enregistré), pas de validation
+        from django.db.models.fields.files import ImageFieldFile
+        if isinstance(photo, ImageFieldFile):
+            return photo
+
+        # Si c'est un nouveau fichier uploadé (UploadedFile), faire les validations
+        from django.core.files.uploadedfile import UploadedFile
+        if isinstance(photo, UploadedFile):
             # Vérifier la taille du fichier (max 10MB)
-            if photo.size > 10 * 1024 * 1024:
+            if hasattr(photo, 'size') and photo.size > 10 * 1024 * 1024:
                 raise ValidationError("La taille de l'image ne doit pas dépasser 10 MB.")
-            
+
             # Vérifier le type de fichier
-            if not photo.content_type.startswith('image/'):
+            if hasattr(photo, 'content_type') and not photo.content_type.startswith('image/'):
                 raise ValidationError("Le fichier doit être une image.")
-        
+
         return photo
 
 
 class ResultatCandidatFormSet(forms.BaseFormSet):
     """FormSet personnalisé pour la validation globale des résultats"""
-    
+
     def __init__(self, *args, **kwargs):
         self.proces_verbal = kwargs.pop('proces_verbal', None)
         self.suffrages_exprimes = kwargs.pop('suffrages_exprimes', None)
         super().__init__(*args, **kwargs)
-    
+
     def clean(self):
         """Vérifie que la somme des voix = suffrages exprimés"""
         if any(self.errors):
             return
-        
+
         total_voix = 0
         for form in self.forms:
             if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
@@ -212,7 +225,7 @@ class ResultatCandidatFormSet(forms.BaseFormSet):
                 if nombre_voix is None:
                     nombre_voix = 0
                 total_voix += nombre_voix
-        
+
         if self.suffrages_exprimes is not None and total_voix != self.suffrages_exprimes:
             raise ValidationError(
                 f"La somme des voix ({total_voix}) doit être égale aux suffrages exprimés ({self.suffrages_exprimes}). "
@@ -222,7 +235,7 @@ class ResultatCandidatFormSet(forms.BaseFormSet):
 
 class ResultatCandidatForm(forms.ModelForm):
     """Formulaire pour la saisie des voix d'un candidat"""
-    
+
     class Meta:
         model = ResultatCandidat
         fields = ['nombre_voix']
@@ -237,23 +250,23 @@ class ResultatCandidatForm(forms.ModelForm):
         labels = {
             'nombre_voix': ''
         }
-    
+
     def __init__(self, *args, **kwargs):
         self.candidat = kwargs.pop('candidat', None)
         super().__init__(*args, **kwargs)
-        
+
         # Définir la valeur par défaut à 0
         if not self.instance.pk:
             self.fields['nombre_voix'].initial = 0
-    
+
     def clean_nombre_voix(self):
         nombre_voix = self.cleaned_data.get('nombre_voix')
-        
+
         # Si la valeur est None, retourner 0
         if nombre_voix is None:
             return 0
-        
+
         if nombre_voix < 0:
             raise ValidationError("Le nombre de voix ne peut pas être négatif.")
-        
+
         return nombre_voix
