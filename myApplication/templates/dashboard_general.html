@@ -4,10 +4,23 @@
 
 {% block content %}
     <div class="max-w-7xl mx-auto">
-        <!-- En-tête -->
+        <!-- En-tête avec bouton Suivi Temps Réel -->
         <div class="bg-gradient-to-r from-orange-600 to-orange-800 rounded-lg sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 text-white mb-4 sm:mb-6 lg:mb-8">
-            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">📊 Résultats Généraux</h1>
-            <p class="text-sm sm:text-base lg:text-xl text-orange-100">Département de Danané - Élections Législatives 2025</p>
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">📊 Résultats Généraux</h1>
+                    <p class="text-sm sm:text-base lg:text-xl text-orange-100">Département de Danané - Élections Législatives 2025</p>
+                </div>
+
+                <!-- Bouton Suivi Temps Réel -->
+                <a href="{% url 'suivi_participation' %}"
+                   class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-3 px-4 sm:px-6 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center gap-2 w-full lg:w-auto">
+                    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="whitespace-nowrap">⏰ Suivi Temps Réel</span>
+                </a>
+            </div>
         </div>
 
         <!-- Progression de la saisie -->
@@ -85,7 +98,7 @@
                                     <div class="text-sm sm:text-base lg:text-lg font-bold text-green-600">{{ candidat_stat.total_voix|floatformat:0|default:"0" }}</div>
                                 </td>
                                 <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap text-right">
-                                    <span class="px-2 sm:px-3 py-1 inline-flex text-xs sm:text-sm leading-5 font-semibold rounded-full 
+                                    <span class="px-2 sm:px-3 py-1 inline-flex text-xs sm:text-sm leading-5 font-semibold rounded-full
                                         {% if candidat_stat.pourcentage >= 50 %}bg-green-100 text-green-800
                                         {% elif candidat_stat.pourcentage >= 30 %}bg-blue-100 text-blue-800
                                         {% else %}bg-gray-100 text-gray-800{% endif %}">
@@ -205,8 +218,15 @@
             </div>
         </div>
 
-        <!-- Actions -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+        <!-- Actions avec bouton Suivi Temps Réel -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+            <a href="{% url 'suivi_participation' %}"
+               class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105 text-center text-sm sm:text-base flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                ⏰ Suivi Temps Réel
+            </a>
             <a href="{% url 'export_resultats_excel' %}"
                class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105 text-center text-sm sm:text-base">
                 📥 Exporter en Excel

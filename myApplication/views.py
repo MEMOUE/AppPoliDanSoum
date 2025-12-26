@@ -998,3 +998,145 @@ def api_sous_prefecture_bureaux(request, sous_prefecture_id):
             },
             status=500
         )
+
+# ========================================
+# À AJOUTER DANS views.py
+# ========================================
+
+from django.views.decorators.http import require_POST
+from django.utils import timezone
+from .models import RelevéHoraire
+
+@login_required
+@require_POST
+def ajouter_releve_horaire(request):
+    """Vue AJAX pour ajouter un relevé horaire"""
+    if request.user.role != 'representant':
+        return JsonResponse({'success': False, 'error': 'Accès non autorisé'}, status=403)
+
+    if not request.user.bureau_vote:
+        return JsonResponse({'success': False, 'error': 'Aucun bureau affecté'}, status=400)
+
+    try:
+        nombre_votants = int(request.POST.get('nombre_votants', 0))
+        observations = request.POST.get('observations', '').strip()
+
+        # Validation
+        if nombre_votants < 0:
+            return JsonResponse({'success': False, 'error': 'Le nombre de votants ne peut pas être négatif'})
+
+        if nombre_votants > request.user.bureau_vote.nombre_inscrits:
+            return JsonResponse({
+                'success': False,
+                'error': f'Le nombre de votants ne peut pas dépasser les inscrits ({request.user.bureau_vote.nombre_inscrits})'
+            })
+
+        # Créer le relevé
+        releve = RelevéHoraire.objects.create(
+            bureau_vote=request.user.bureau_vote,
+            representant=request.user,
+            nombre_votants=nombre_votants,
+            observations=observations
+        )
+
+        return JsonResponse({
+            'success': True,
+            'releve': {
+                'id': releve.id,
+                'heure': releve.heure_releve.strftime('%H:%M'),
+                'nombre_votants': releve.nombre_votants,
+                'taux_participation': releve.get_taux_participation(),
+                'observations': releve.observations or ''
+            }
+        })
+
+    except ValueError:
+        return JsonResponse({'success': False, 'error': 'Données invalides'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+def liste_releves_horaires(request):
+    """Liste des relevés horaires du bureau du représentant"""
+    if request.user.role != 'representant':
+        messages.error(request, 'Accès non autorisé')
+        return redirect('home')
+
+    if not request.user.bureau_vote:
+        messages.error(request, 'Aucun bureau affecté')
+        return redirect('home')
+
+    releves = RelevéHoraire.objects.filter(
+        bureau_vote=request.user.bureau_vote
+    ).order_by('-heure_releve')
+
+    return render(request, 'liste_releves.html', {
+        'bureau': request.user.bureau_vote,
+        'releves': releves
+    })
+
+
+@login_required
+def suivi_participation(request):
+    """Page de suivi de la participation pour les candidats"""
+    if request.user.role != 'candidat':
+        messages.error(request, 'Accès réservé aux candidats')
+        return redirect('home')
+
+    # Récupérer tous les relevés de tous les bureaux
+    releves = RelevéHoraire.objects.select_related(
+        'bureau_vote__centre_vote__sous_prefecture',
+        'representant'
+    ).order_by('-heure_releve')[:50]  # Les 50 derniers
+
+    # Statistiques globales
+    dernier_releve_par_bureau = {}
+    for releve in RelevéHoraire.objects.select_related('bureau_vote').order_by('bureau_vote', '-heure_releve'):
+        if releve.bureau_vote.id not in dernier_releve_par_bureau:
+            dernier_releve_par_bureau[releve.bureau_vote.id] = releve
+
+    total_votants = sum(r.nombre_votants for r in dernier_releve_par_bureau.values())
+    total_inscrits = sum(r.bureau_vote.nombre_inscrits for r in dernier_releve_par_bureau.values())
+    taux_global = (total_votants / total_inscrits * 100) if total_inscrits > 0 else 0
+
+    bureaux_reporting = len(dernier_releve_par_bureau)
+    total_bureaux = BureauVote.objects.count()
+    taux_couverture = (bureaux_reporting / total_bureaux * 100) if total_bureaux > 0 else 0
+
+    context = {
+        'releves': releves,
+        'total_votants': total_votants,
+        'total_inscrits': total_inscrits,
+        'taux_global': round(taux_global, 2),
+        'bureaux_reporting': bureaux_reporting,
+        'total_bureaux': total_bureaux,
+        'taux_couverture': round(taux_couverture, 2)
+    }
+
+    return render(request, 'suivi_participation.html', context)
+
+
+@login_required
+def api_derniers_releves(request):
+    """API pour récupérer les derniers relevés (pour auto-refresh)"""
+    releves = RelevéHoraire.objects.select_related(
+        'bureau_vote__centre_vote__sous_prefecture',
+        'representant'
+    ).order_by('-heure_releve')[:20]
+
+    data = []
+    for releve in releves:
+        data.append({
+            'id': releve.id,
+            'bureau': f"Bureau {releve.bureau_vote.numero}",
+            'centre': releve.bureau_vote.centre_vote.nom,
+            'sous_prefecture': releve.bureau_vote.centre_vote.sous_prefecture.nom,
+            'heure': releve.heure_releve.strftime('%H:%M'),
+            'nombre_votants': releve.nombre_votants,
+            'inscrits': releve.bureau_vote.nombre_inscrits,
+            'taux': releve.get_taux_participation(),
+            'observations': releve.observations or ''
+        })
+
+    return JsonResponse({'releves': data})

@@ -3,223 +3,233 @@
 {% block title %}Saisie du Procès-Verbal{% endblock %}
 
 {% block extra_css %}
-<style>
-    .candidat-row:hover {
-        background-color: #f3f4f6;
-    }
-    #suffrages-display {
-        transition: all 0.3s ease;
-    }
-    .alert-danger {
-        animation: shake 0.5s;
-    }
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
-    }
-    
-    /* Table responsive helper */
-    @media (max-width: 768px) {
-        .responsive-table {
-            display: block;
-            overflow-x: auto;
-            white-space: nowrap;
+    <style>
+        .candidat-row:hover {
+            background-color: #f3f4f6;
         }
-        
-        .responsive-table table {
-            min-width: 600px;
+        #suffrages-display {
+            transition: all 0.3s ease;
         }
-    }
-</style>
+        .alert-danger {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Table responsive helper */
+        @media (max-width: 768px) {
+            .responsive-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+
+            .responsive-table table {
+                min-width: 600px;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto">
-    <!-- En-tête -->
-    <div class="bg-gradient-to-r from-green-600 to-green-800 rounded-lg sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 text-white mb-4 sm:mb-6 lg:mb-8">
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">✍️ Saisie du Procès-Verbal</h1>
-        <p class="text-sm sm:text-base lg:text-xl text-green-100">Enregistrez les résultats complets de votre bureau de vote</p>
-    </div>
-
-    {% if no_bureau %}
-        <!-- Aucun bureau affecté -->
-        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 sm:p-6 rounded-lg">
-            <div class="flex items-start">
-                <div class="flex-shrink-0">
-                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
-                <div class="ml-3 sm:ml-4 flex-1">
-                    <h3 class="text-base sm:text-lg font-semibold text-yellow-800">Aucun bureau de vote affecté</h3>
-                    <p class="text-sm sm:text-base text-yellow-700 mt-2">
-                        Votre compte n'a pas encore été affecté à un bureau de vote. 
-                        Veuillez contacter l'administrateur.
-                    </p>
-                </div>
-            </div>
-        </div>
-    {% else %}
-        <!-- Informations du bureau -->
-        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 lg:mb-8">
-            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">📍 Votre Bureau de Vote</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                <div class="bg-blue-50 rounded-lg p-3 sm:p-4">
-                    <p class="text-xs sm:text-sm text-gray-600 font-semibold">Centre de vote</p>
-                    <p class="text-sm sm:text-base lg:text-lg font-bold text-gray-800 mt-1 break-words">{{ bureau.centre_vote.nom }}</p>
-                </div>
-                <div class="bg-green-50 rounded-lg p-3 sm:p-4">
-                    <p class="text-xs sm:text-sm text-gray-600 font-semibold">Bureau n°</p>
-                    <p class="text-sm sm:text-base lg:text-lg font-bold text-gray-800 mt-1">{{ bureau.numero }}</p>
-                </div>
-                <div class="bg-purple-50 rounded-lg p-3 sm:p-4 sm:col-span-2 lg:col-span-1">
-                    <p class="text-xs sm:text-sm text-gray-600 font-semibold">Sous-préfecture</p>
-                    <p class="text-xs sm:text-sm font-bold text-gray-800 mt-1 break-words">{{ bureau.centre_vote.sous_prefecture.nom }}</p>
-                </div>
-            </div>
+    <div class="max-w-6xl mx-auto">
+        <!-- En-tête -->
+        <div class="bg-gradient-to-r from-green-600 to-green-800 rounded-lg sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 text-white mb-4 sm:mb-6 lg:mb-8">
+            <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">✍️ Saisie du Procès-Verbal</h1>
+            <p class="text-sm sm:text-base lg:text-xl text-green-100">Enregistrez les résultats complets de votre bureau de vote</p>
         </div>
 
-        <!-- Formulaire de saisie -->
-        <form method="post" enctype="multipart/form-data" id="pv-form">
-            {% csrf_token %}
-            {{ management_form }}
-            
-            <!-- Section 1: Données globales du PV -->
-            <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
-                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">📊 Données Globales du Bureau</h2>
-                    {% if pv_existant %}
-                        <span class="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500 text-white rounded-full text-xs sm:text-sm font-semibold">
+        {% if no_bureau %}
+            <!-- Aucun bureau affecté -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 sm:p-6 rounded-lg">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <svg class="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <div class="ml-3 sm:ml-4 flex-1">
+                        <h3 class="text-base sm:text-lg font-semibold text-yellow-800">Aucun bureau de vote affecté</h3>
+                        <p class="text-sm sm:text-base text-yellow-700 mt-2">
+                            Votre compte n'a pas encore été affecté à un bureau de vote.
+                            Veuillez contacter l'administrateur.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Informations du bureau -->
+            <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 lg:mb-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">📍 Votre Bureau de Vote</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                    <div class="bg-blue-50 rounded-lg p-3 sm:p-4">
+                        <p class="text-xs sm:text-sm text-gray-600 font-semibold">Centre de vote</p>
+                        <p class="text-sm sm:text-base lg:text-lg font-bold text-gray-800 mt-1 break-words">{{ bureau.centre_vote.nom }}</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-3 sm:p-4">
+                        <p class="text-xs sm:text-sm text-gray-600 font-semibold">Bureau n°</p>
+                        <p class="text-sm sm:text-base lg:text-lg font-bold text-gray-800 mt-1">{{ bureau.numero }}</p>
+                    </div>
+                    <div class="bg-purple-50 rounded-lg p-3 sm:p-4 sm:col-span-2 lg:col-span-1">
+                        <p class="text-xs sm:text-sm text-gray-600 font-semibold">Sous-préfecture</p>
+                        <p class="text-xs sm:text-sm font-bold text-gray-800 mt-1 break-words">{{ bureau.centre_vote.sous_prefecture.nom }}</p>
+                    </div>
+                </div>
+
+                <!-- Bouton pour ouvrir la modal RELEVE HORAIRE -->
+                <div class="mt-4">
+                    <button
+                            type="button"
+                            onclick="openReleveModal()"
+                            class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition shadow-lg">
+                        ⏰ Ajouter un relevé horaire
+                    </button>
+                </div>
+            </div>
+
+            <!-- Formulaire de saisie -->
+            <form method="post" enctype="multipart/form-data" id="pv-form">
+                {% csrf_token %}
+                {{ management_form }}
+
+                <!-- Section 1: Données globales du PV -->
+                <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
+                        <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">📊 Données Globales du Bureau</h2>
+                        {% if pv_existant %}
+                            <span class="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500 text-white rounded-full text-xs sm:text-sm font-semibold">
                             ✓ PV enregistré
                         </span>
-                    {% endif %}
-                </div>
-
-                <!-- Nombre d'inscrits en premier -->
-                <div class="mb-4 sm:mb-6 bg-blue-50 rounded-lg p-4 sm:p-6 border-2 border-blue-200">
-                    <label class="block text-xs sm:text-sm font-bold text-blue-900 mb-2">
-                        📋 Nombre d'inscrits dans ce bureau <span class="text-red-500">*</span>
-                    </label>
-                    {{ pv_form.nombre_inscrits }}
-                    {% if pv_form.nombre_inscrits.errors %}
-                        <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.nombre_inscrits.errors.0 }}</p>
-                    {% endif %}
-                    <p class="text-xs text-blue-700 mt-2">
-                        ℹ️ Nombre total d'électeurs inscrits dans votre bureau (selon la liste électorale)
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
-                    <div>
-                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                            Nombre de votants <span class="text-red-500">*</span>
-                        </label>
-                        {{ pv_form.nombre_votants }}
-                        {% if pv_form.nombre_votants.errors %}
-                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.nombre_votants.errors.0 }}</p>
-                        {% endif %}
-                        <p class="text-xs text-gray-500 mt-1" id="max-votants-info">Ne peut pas dépasser les inscrits</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                            Bulletins nuls
-                        </label>
-                        {{ pv_form.bulletins_nuls }}
-                        {% if pv_form.bulletins_nuls.errors %}
-                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.bulletins_nuls.errors.0 }}</p>
                         {% endif %}
                     </div>
 
-                    <div class="sm:col-span-2 lg:col-span-1">
-                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                            Bulletins blancs
+                    <!-- Nombre d'inscrits en premier -->
+                    <div class="mb-4 sm:mb-6 bg-blue-50 rounded-lg p-4 sm:p-6 border-2 border-blue-200">
+                        <label class="block text-xs sm:text-sm font-bold text-blue-900 mb-2">
+                            📋 Nombre d'inscrits dans ce bureau <span class="text-red-500">*</span>
                         </label>
-                        {{ pv_form.bulletins_blancs }}
-                        {% if pv_form.bulletins_blancs.errors %}
-                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.bulletins_blancs.errors.0 }}</p>
+                        {{ pv_form.nombre_inscrits }}
+                        {% if pv_form.nombre_inscrits.errors %}
+                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.nombre_inscrits.errors.0 }}</p>
                         {% endif %}
+                        <p class="text-xs text-blue-700 mt-2">
+                            ℹ️ Nombre total d'électeurs inscrits dans votre bureau (selon la liste électorale)
+                        </p>
                     </div>
-                </div>
 
-                <!-- Calcul automatique des suffrages exprimés -->
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 mb-4 sm:mb-6">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                         <div>
-                            <p class="text-xs sm:text-sm font-semibold text-gray-700">Suffrages exprimés (calculé automatiquement)</p>
-                            <p class="text-xs text-gray-600 mt-1">= Votants - Nuls - Blancs</p>
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                                Nombre de votants <span class="text-red-500">*</span>
+                            </label>
+                            {{ pv_form.nombre_votants }}
+                            {% if pv_form.nombre_votants.errors %}
+                                <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.nombre_votants.errors.0 }}</p>
+                            {% endif %}
+                            <p class="text-xs text-gray-500 mt-1" id="max-votants-info">Ne peut pas dépasser les inscrits</p>
                         </div>
-                        <div id="suffrages-display" class="text-2xl sm:text-3xl font-bold text-blue-600">
-                            0
+
+                        <div>
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                                Bulletins nuls
+                            </label>
+                            {{ pv_form.bulletins_nuls }}
+                            {% if pv_form.bulletins_nuls.errors %}
+                                <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.bulletins_nuls.errors.0 }}</p>
+                            {% endif %}
                         </div>
+
+                        <div class="sm:col-span-2 lg:col-span-1">
+                            <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                                Bulletins blancs
+                            </label>
+                            {{ pv_form.bulletins_blancs }}
+                            {% if pv_form.bulletins_blancs.errors %}
+                                <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.bulletins_blancs.errors.0 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Calcul automatique des suffrages exprimés -->
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 mb-4 sm:mb-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                            <div>
+                                <p class="text-xs sm:text-sm font-semibold text-gray-700">Suffrages exprimés (calculé automatiquement)</p>
+                                <p class="text-xs text-gray-600 mt-1">= Votants - Nuls - Blancs</p>
+                            </div>
+                            <div id="suffrages-display" class="text-2xl sm:text-3xl font-bold text-blue-600">
+                                0
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 sm:mb-6">
+                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                            Photo du procès-verbal <span class="text-red-500">*</span>
+                        </label>
+                        {{ pv_form.photo_pv }}
+                        {% if pv_form.photo_pv.errors %}
+                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.photo_pv.errors.0 }}</p>
+                        {% endif %}
+                        {% if pv_existant and pv_existant.photo_pv %}
+                            <div class="mt-3">
+                                <p class="text-xs sm:text-sm text-gray-600 mb-2">Photo actuelle :</p>
+                                <img src="{{ pv_existant.photo_pv.url }}" alt="PV" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded border cursor-pointer" onclick="openImageModal('{{ pv_existant.photo_pv.url }}')">
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
+                            Observations (optionnel)
+                        </label>
+                        {{ pv_form.observations }}
+                        {% if pv_form.observations.errors %}
+                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.observations.errors.0 }}</p>
+                        {% endif %}
                     </div>
                 </div>
 
-                <div class="mb-4 sm:mb-6">
-                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                        Photo du procès-verbal <span class="text-red-500">*</span>
-                    </label>
-                    {{ pv_form.photo_pv }}
-                    {% if pv_form.photo_pv.errors %}
-                        <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.photo_pv.errors.0 }}</p>
-                    {% endif %}
-                    {% if pv_existant and pv_existant.photo_pv %}
-                        <div class="mt-3">
-                            <p class="text-xs sm:text-sm text-gray-600 mb-2">Photo actuelle :</p>
-                            <img src="{{ pv_existant.photo_pv.url }}" alt="PV" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded border cursor-pointer" onclick="openImageModal('{{ pv_existant.photo_pv.url }}')">
-                        </div>
-                    {% endif %}
-                </div>
+                <!-- Section 2: Résultats par candidat -->
+                <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
+                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">🎯 Résultats par Candidat</h2>
 
-                <div>
-                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
-                        Observations (optionnel)
-                    </label>
-                    {{ pv_form.observations }}
-                    {% if pv_form.observations.errors %}
-                        <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.observations.errors.0 }}</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Section 2: Résultats par candidat -->
-            <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
-                <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">🎯 Résultats par Candidat</h2>
-                
-                <div class="responsive-table">
-                    <div class="overflow-x-auto -mx-4 sm:mx-0">
-                        <table class="min-w-full">
-                            <thead class="bg-gray-50">
+                    <div class="responsive-table">
+                        <div class="overflow-x-auto -mx-4 sm:mx-0">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50">
                                 <tr>
                                     <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">N°</th>
                                     <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidat</th>
                                     <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Parti</th>
                                     <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase">Voix</th>
                                 </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
                                 {% for candidat, form in candidats_forms %}
-                                <tr class="candidat-row">
-                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
-                                        <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full text-blue-600 font-bold text-xs sm:text-sm">
-                                            {{ candidat.numero_candidat|default:forloop.counter }}
-                                        </div>
-                                    </td>
-                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
-                                        <div class="text-xs sm:text-sm font-bold text-gray-900 break-words max-w-[150px] sm:max-w-none">{{ candidat.get_full_name }}</div>
-                                        <div class="text-xs text-gray-600 sm:hidden mt-1">{{ candidat.parti_politique|default:"Indépendant"|truncatewords:2 }}</div>
-                                    </td>
-                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 hidden sm:table-cell">
-                                        <div class="text-xs sm:text-sm text-gray-600 break-words max-w-[200px]">{{ candidat.parti_politique|default:"Indépendant" }}</div>
-                                    </td>
-                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 text-center">
-                                        {{ form.nombre_voix }}
-                                    </td>
-                                </tr>
+                                    <tr class="candidat-row">
+                                        <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                            <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full text-blue-600 font-bold text-xs sm:text-sm">
+                                                {{ candidat.numero_candidat|default:forloop.counter }}
+                                            </div>
+                                        </td>
+                                        <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
+                                            <div class="text-xs sm:text-sm font-bold text-gray-900 break-words max-w-[150px] sm:max-w-none">{{ candidat.get_full_name }}</div>
+                                            <div class="text-xs text-gray-600 sm:hidden mt-1">{{ candidat.parti_politique|default:"Indépendant"|truncatewords:2 }}</div>
+                                        </td>
+                                        <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 hidden sm:table-cell">
+                                            <div class="text-xs sm:text-sm text-gray-600 break-words max-w-[200px]">{{ candidat.parti_politique|default:"Indépendant" }}</div>
+                                        </td>
+                                        <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 text-center">
+                                            {{ form.nombre_voix }}
+                                        </td>
+                                    </tr>
                                 {% endfor %}
-                            </tbody>
-                            <tfoot class="bg-gray-100">
+                                </tbody>
+                                <tfoot class="bg-gray-100">
                                 <tr>
                                     <td colspan="3" class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 text-right font-bold text-gray-700 text-xs sm:text-sm">
                                         TOTAL DES VOIX :
@@ -228,173 +238,314 @@
                                         <div id="total-voix" class="text-xl sm:text-2xl font-bold text-gray-900">0</div>
                                     </td>
                                 </tr>
-                            </tfoot>
-                        </table>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Validation visuelle -->
+                    <div id="validation-message" class="mt-4 sm:mt-6 p-3 sm:p-4 rounded-lg border hidden">
+                        <p class="font-semibold text-xs sm:text-sm"></p>
                     </div>
                 </div>
 
-                <!-- Validation visuelle -->
-                <div id="validation-message" class="mt-4 sm:mt-6 p-3 sm:p-4 rounded-lg border hidden">
-                    <p class="font-semibold text-xs sm:text-sm"></p>
+                <!-- Bouton de soumission -->
+                <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <button
+                            type="submit"
+                            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base lg:text-lg">
+                        <span>💾 {% if pv_existant %}Mettre à jour{% else %}Enregistrer{% endif %} le procès-verbal</span>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Aide -->
+            <div class="mt-6 sm:mt-8 bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200">
+                <h3 class="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">💡 Instructions</h3>
+                <ul class="space-y-2 text-xs sm:text-sm text-gray-700">
+                    <li class="flex items-start">
+                        <span class="text-green-500 mr-2 mt-0.5">✓</span>
+                        <span><strong>IMPORTANT :</strong> Renseignez d'abord le <strong>nombre d'inscrits</strong> de votre bureau (selon la liste électorale)</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-green-500 mr-2 mt-0.5">✓</span>
+                        <span>Remplissez ensuite les données globales (votants, nuls, blancs)</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-green-500 mr-2 mt-0.5">✓</span>
+                        <span>Saisissez le nombre de voix pour chaque candidat</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-green-500 mr-2 mt-0.5">✓</span>
+                        <span>La somme des voix doit égaler les suffrages exprimés</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-green-500 mr-2 mt-0.5">✓</span>
+                        <span>La photo du PV doit être nette et lisible</span>
+                    </li>
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Modal pour agrandir la photo PV -->
+    <div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4" onclick="closeImageModal()">
+        <div class="relative max-w-full max-h-full">
+            <button onclick="closeImageModal()" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-white bg-red-500 hover:bg-red-600 rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-xl sm:text-2xl z-10">
+                ×
+            </button>
+            <img id="modalImage" src="" alt="Procès-verbal" class="max-w-full max-h-[90vh] rounded-lg">
+        </div>
+    </div>
+
+    <!-- Modal pour le relevé horaire - SÉPARÉE -->
+    <div id="releveModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div class="bg-purple-600 px-6 py-4 rounded-t-xl">
+                <h3 class="text-xl font-bold text-white">⏰ Relevé Horaire</h3>
+            </div>
+
+            <div class="p-6">
+                <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-gray-700">
+                        <strong>Bureau :</strong> {{ bureau.numero }}<br>
+                        <strong>Centre :</strong> {{ bureau.centre_vote.nom }}<br>
+                        <strong>Inscrits :</strong> {{ bureau.nombre_inscrits }}
+                    </p>
+                </div>
+
+                <form id="releveForm">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Nombre de votants actuels <span class="text-red-500">*</span>
+                        </label>
+                        <input
+                                type="number"
+                                id="nombre_votants_releve"
+                                name="nombre_votants"
+                                min="0"
+                                max="{{ bureau.nombre_inscrits }}"
+                                required
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Ex: 150">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Observations (optionnel)
+                        </label>
+                        <textarea
+                                id="observations_releve"
+                                name="observations"
+                                rows="2"
+                                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Remarques..."></textarea>
+                    </div>
+
+                    <div id="releve-error" class="hidden mb-4 p-3 bg-red-100 border border-red-400 rounded text-red-700 text-sm"></div>
+                    <div id="releve-success" class="hidden mb-4 p-3 bg-green-100 border border-green-400 rounded text-green-700 text-sm"></div>
+
+                    <div class="flex gap-3">
+                        <button
+                                type="button"
+                                onclick="closeReleveModal()"
+                                class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded-lg transition">
+                            Annuler
+                        </button>
+                        <button
+                                type="submit"
+                                class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition">
+                            💾 Enregistrer
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Historique des relevés -->
+                <div class="mt-6 pt-6 border-t border-gray-200">
+                    <h4 class="text-sm font-bold text-gray-700 mb-3">📊 Derniers relevés</h4>
+                    <div id="historique-releves" class="space-y-2 max-h-48 overflow-y-auto">
+                        <p class="text-sm text-gray-500 text-center">Chargement...</p>
+                    </div>
                 </div>
             </div>
-
-            <!-- Bouton de soumission -->
-            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                <button 
-                    type="submit" 
-                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base lg:text-lg">
-                    <span>💾 {% if pv_existant %}Mettre à jour{% else %}Enregistrer{% endif %} le procès-verbal</span>
-                </button>
-            </div>
-        </form>
-
-        <!-- Aide -->
-        <div class="mt-6 sm:mt-8 bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200">
-            <h3 class="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">💡 Instructions</h3>
-            <ul class="space-y-2 text-xs sm:text-sm text-gray-700">
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
-                    <span><strong>IMPORTANT :</strong> Renseignez d'abord le <strong>nombre d'inscrits</strong> de votre bureau (selon la liste électorale)</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
-                    <span>Remplissez ensuite les données globales (votants, nuls, blancs)</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
-                    <span>Saisissez le nombre de voix pour chaque candidat</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
-                    <span>La somme des voix doit égaler les suffrages exprimés</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
-                    <span>La photo du PV doit être nette et lisible</span>
-                </li>
-            </ul>
         </div>
-    {% endif %}
-</div>
-
-<!-- Modal pour agrandir la photo -->
-<div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4" onclick="closeImageModal()">
-    <div class="relative max-w-full max-h-full">
-        <button onclick="closeImageModal()" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-white bg-red-500 hover:bg-red-600 rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-xl sm:text-2xl z-10">
-            ×
-        </button>
-        <img id="modalImage" src="" alt="Procès-verbal" class="max-w-full max-h-[90vh] rounded-lg">
     </div>
-</div>
 
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Mise à jour de l'info du maximum de votants
-    function updateMaxVotantsInfo() {
-        const inscrits = parseInt(document.getElementById('id_nombre_inscrits_bureau').value) || 0;
-        const maxInfo = document.getElementById('max-votants-info');
-        if (inscrits > 0) {
-            maxInfo.textContent = `Maximum: ${inscrits} (nombre d'inscrits)`;
-            maxInfo.classList.remove('text-gray-500');
-            maxInfo.classList.add('text-blue-600', 'font-semibold');
-        } else {
-            maxInfo.textContent = 'Renseignez d\'abord le nombre d\'inscrits';
-            maxInfo.classList.remove('text-blue-600', 'font-semibold');
-            maxInfo.classList.add('text-red-500', 'font-semibold');
+    <script>
+        // Mise à jour de l'info du maximum de votants
+        function updateMaxVotantsInfo() {
+            const inscrits = parseInt(document.getElementById('id_nombre_inscrits_bureau').value) || 0;
+            const maxInfo = document.getElementById('max-votants-info');
+            if (inscrits > 0) {
+                maxInfo.textContent = `Maximum: ${inscrits} (nombre d'inscrits)`;
+                maxInfo.classList.remove('text-gray-500');
+                maxInfo.classList.add('text-blue-600', 'font-semibold');
+            } else {
+                maxInfo.textContent = 'Renseignez d\'abord le nombre d\'inscrits';
+                maxInfo.classList.remove('text-blue-600', 'font-semibold');
+                maxInfo.classList.add('text-red-500', 'font-semibold');
+            }
         }
-    }
-    
-    // Calcul automatique des suffrages exprimés
-    function updateSuffraresExprimes() {
-        const votants = parseInt(document.getElementById('id_nombre_votants').value) || 0;
-        const nuls = parseInt(document.getElementById('id_bulletins_nuls').value) || 0;
-        const blancs = parseInt(document.getElementById('id_bulletins_blancs').value) || 0;
-        
-        const suffrages = votants - nuls - blancs;
-        document.getElementById('suffrages-display').textContent = suffrages >= 0 ? suffrages : 0;
-        
-        validateTotalVoix();
-    }
-    
-    // Calcul automatique du total des voix
-    function updateTotalVoix() {
+
+        // Calcul automatique des suffrages exprimés
+        function updateSuffraresExprimes() {
+            const votants = parseInt(document.getElementById('id_nombre_votants').value) || 0;
+            const nuls = parseInt(document.getElementById('id_bulletins_nuls').value) || 0;
+            const blancs = parseInt(document.getElementById('id_bulletins_blancs').value) || 0;
+
+            const suffrages = votants - nuls - blancs;
+            document.getElementById('suffrages-display').textContent = suffrages >= 0 ? suffrages : 0;
+
+            validateTotalVoix();
+        }
+
+        // Calcul automatique du total des voix
+        function updateTotalVoix() {
+            const voixInputs = document.querySelectorAll('input[name$="-nombre_voix"]');
+            let total = 0;
+
+            voixInputs.forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+
+            document.getElementById('total-voix').textContent = total;
+            validateTotalVoix();
+        }
+
+        // Validation visuelle
+        function validateTotalVoix() {
+            const suffrages = parseInt(document.getElementById('suffrages-display').textContent) || 0;
+            const total = parseInt(document.getElementById('total-voix').textContent) || 0;
+            const messageDiv = document.getElementById('validation-message');
+            const messageText = messageDiv.querySelector('p');
+
+            if (suffrages === 0) {
+                messageDiv.classList.add('hidden');
+                return;
+            }
+
+            if (total === suffrages) {
+                messageDiv.classList.remove('hidden', 'bg-red-50', 'border-red-500');
+                messageDiv.classList.add('bg-green-50', 'border-green-500');
+                messageText.classList.remove('text-red-700');
+                messageText.classList.add('text-green-700');
+                messageText.textContent = `✓ Validation OK : ${total} voix = ${suffrages} suffrages exprimés`;
+            } else {
+                messageDiv.classList.remove('hidden', 'bg-green-50', 'border-green-500');
+                messageDiv.classList.add('bg-red-50', 'border-red-500');
+                messageText.classList.remove('text-green-700');
+                messageText.classList.add('text-red-700');
+                const diff = Math.abs(total - suffrages);
+                messageText.textContent = `⚠ Attention : ${total} voix ≠ ${suffrages} suffrages exprimés (différence : ${diff})`;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('id_nombre_inscrits_bureau').addEventListener('input', updateMaxVotantsInfo);
+        document.getElementById('id_nombre_votants').addEventListener('input', updateSuffraresExprimes);
+        document.getElementById('id_bulletins_nuls').addEventListener('input', updateSuffraresExprimes);
+        document.getElementById('id_bulletins_blancs').addEventListener('input', updateSuffraresExprimes);
+
         const voixInputs = document.querySelectorAll('input[name$="-nombre_voix"]');
-        let total = 0;
-        
         voixInputs.forEach(input => {
-            total += parseInt(input.value) || 0;
+            input.addEventListener('input', updateTotalVoix);
         });
-        
-        document.getElementById('total-voix').textContent = total;
-        validateTotalVoix();
-    }
-    
-    // Validation visuelle
-    function validateTotalVoix() {
-        const suffrages = parseInt(document.getElementById('suffrages-display').textContent) || 0;
-        const total = parseInt(document.getElementById('total-voix').textContent) || 0;
-        const messageDiv = document.getElementById('validation-message');
-        const messageText = messageDiv.querySelector('p');
-        
-        if (suffrages === 0) {
-            messageDiv.classList.add('hidden');
-            return;
+
+        // Initialisation
+        updateMaxVotantsInfo();
+        updateSuffraresExprimes();
+        updateTotalVoix();
+
+        // ===== Modal Image PV =====
+        function openImageModal(imageUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            modalImage.src = imageUrl;
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
-        
-        if (total === suffrages) {
-            messageDiv.classList.remove('hidden', 'bg-red-50', 'border-red-500');
-            messageDiv.classList.add('bg-green-50', 'border-green-500');
-            messageText.classList.remove('text-red-700');
-            messageText.classList.add('text-green-700');
-            messageText.textContent = `✓ Validation OK : ${total} voix = ${suffrages} suffrages exprimés`;
-        } else {
-            messageDiv.classList.remove('hidden', 'bg-green-50', 'border-green-500');
-            messageDiv.classList.add('bg-red-50', 'border-red-500');
-            messageText.classList.remove('text-green-700');
-            messageText.classList.add('text-red-700');
-            const diff = Math.abs(total - suffrages);
-            messageText.textContent = `⚠ Attention : ${total} voix ≠ ${suffrages} suffrages exprimés (différence : ${diff})`;
+
+        function closeImageModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
         }
-    }
-    
-    // Event listeners
-    document.getElementById('id_nombre_inscrits_bureau').addEventListener('input', updateMaxVotantsInfo);
-    document.getElementById('id_nombre_votants').addEventListener('input', updateSuffraresExprimes);
-    document.getElementById('id_bulletins_nuls').addEventListener('input', updateSuffraresExprimes);
-    document.getElementById('id_bulletins_blancs').addEventListener('input', updateSuffraresExprimes);
-    
-    const voixInputs = document.querySelectorAll('input[name$="-nombre_voix"]');
-    voixInputs.forEach(input => {
-        input.addEventListener('input', updateTotalVoix);
-    });
-    
-    // Initialisation
-    updateMaxVotantsInfo();
-    updateSuffraresExprimes();
-    updateTotalVoix();
-    
-    // Modal functions
-    function openImageModal(imageUrl) {
-        const modal = document.getElementById('imageModal');
-        const modalImage = document.getElementById('modalImage');
-        modalImage.src = imageUrl;
-        modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden';
-    }
-    
-    function closeImageModal() {
-        const modal = document.getElementById('imageModal');
-        modal.classList.add('hidden');
-        document.body.style.overflow = '';
-    }
-    
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            closeImageModal();
+
+        // ===== Modal Relevé Horaire =====
+        function openReleveModal() {
+            document.getElementById('releveModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            chargerHistoriqueReleves();
         }
-    });
-</script>
+
+        function closeReleveModal() {
+            document.getElementById('releveModal').classList.add('hidden');
+            document.body.style.overflow = '';
+            document.getElementById('releveForm').reset();
+            document.getElementById('releve-error').classList.add('hidden');
+            document.getElementById('releve-success').classList.add('hidden');
+        }
+
+        function chargerHistoriqueReleves() {
+            const historiqueDiv = document.getElementById('historique-releves');
+            historiqueDiv.innerHTML = '<p class="text-sm text-gray-500 text-center">Chargement...</p>';
+
+            // Simuler le chargement - à remplacer par un vrai appel API si nécessaire
+            setTimeout(() => {
+                historiqueDiv.innerHTML = '<p class="text-xs text-gray-400 text-center">Aucun relevé récent</p>';
+            }, 500);
+        }
+
+        // Soumission du formulaire relevé
+        document.getElementById('releveForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const errorDiv = document.getElementById('releve-error');
+            const successDiv = document.getElementById('releve-success');
+
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            fetch('{% url "ajouter_releve_horaire" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        successDiv.textContent = `✅ Relevé enregistré : ${data.releve.nombre_votants} votants (${data.releve.taux_participation}%) à ${data.releve.heure}`;
+                        successDiv.classList.remove('hidden');
+                        document.getElementById('releveForm').reset();
+
+                        // Fermer après 2 secondes
+                        setTimeout(() => {
+                            closeReleveModal();
+                        }, 2000);
+                    } else {
+                        errorDiv.textContent = `❌ ${data.error}`;
+                        errorDiv.classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    errorDiv.textContent = `❌ Erreur de connexion : ${error.message}`;
+                    errorDiv.classList.remove('hidden');
+                });
+        });
+
+        // Fermer avec Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeImageModal();
+                closeReleveModal();
+            }
+        });
+    </script>
 {% endblock %}

@@ -17,4 +17,11 @@ urlpatterns = [
 
     path('export/excel/', views.export_resultats_excel, name='export_resultats_excel'),
     path('export/pdf/', views.export_resultats_pdf, name='export_resultats_pdf'),
+
+
+    path('releve-horaire/ajouter/', views.ajouter_releve_horaire, name='ajouter_releve_horaire'),
+    path('releve-horaire/liste/', views.liste_releves_horaires, name='liste_releves_horaires'),
+    path('suivi-participation/', views.suivi_participation, name='suivi_participation'),
+    path('api/derniers-releves/', views.api_derniers_releves, name='api_derniers_releves'),
+
 ]

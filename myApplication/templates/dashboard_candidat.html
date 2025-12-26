@@ -132,7 +132,7 @@
                                 <div class="text-sm text-gray-900">{{ stat.suffrages_exprimes|floatformat:0 }}</div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right">
-                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
+                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full
                                     {% if stat.pourcentage >= 50 %}bg-green-100 text-green-800
                                     {% elif stat.pourcentage >= 30 %}bg-blue-100 text-blue-800
                                     {% else %}bg-gray-100 text-gray-800{% endif %}">
@@ -210,7 +210,7 @@
                         <h3 class="text-lg font-bold text-gray-800 mb-3">
                             {{ groupe_sp.grouper.nom }} ({{ groupe_sp.grouper.departement.nom }})
                         </h3>
-                        
+
                         {% regroup groupe_sp.list by proces_verbal.bureau_vote.centre_vote as resultats_par_centre %}
                         {% for groupe_centre in resultats_par_centre %}
                             <div class="ml-4 mb-4">

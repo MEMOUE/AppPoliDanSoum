@@ -453,3 +453,43 @@ class AuditLogAdmin(admin.ModelAdmin):
     def has_delete_permission(self, request, obj=None):
         return False  # Les logs ne peuvent pas être supprimés
 """
+
+
+# ========================================
+# À AJOUTER DANS models.py AVANT AuditLog
+# ========================================
+
+class RelevéHoraire(models.Model):
+    """Relevé horaire du nombre de votants dans un bureau"""
+    bureau_vote = models.ForeignKey(
+        BureauVote,
+        on_delete=models.CASCADE,
+        related_name='releves_horaires'
+    )
+    representant = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='releves_saisis',
+        limit_choices_to={'role': 'representant'}
+    )
+    heure_releve = models.DateTimeField(auto_now_add=True, verbose_name='Heure du relevé')
+    nombre_votants = models.IntegerField(
+        validators=[MinValueValidator(0)],
+        help_text='Nombre de votants à cette heure'
+    )
+    observations = models.TextField(blank=True, null=True, verbose_name='Observations')
+
+    class Meta:
+        verbose_name = 'Relevé horaire'
+        verbose_name_plural = 'Relevés horaires'
+        ordering = ['-heure_releve']
+
+    def __str__(self):
+        return f"{self.bureau_vote} - {self.heure_releve.strftime('%H:%M')} - {self.nombre_votants} votants"
+
+    def get_taux_participation(self):
+        """Calcule le taux de participation à cette heure"""
+        if self.bureau_vote.nombre_inscrits == 0:
+            return 0
+        return round((self.nombre_votants / self.bureau_vote.nombre_inscrits) * 100, 2)
