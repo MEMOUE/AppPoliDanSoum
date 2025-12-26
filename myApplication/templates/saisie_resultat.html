@@ -18,29 +18,42 @@
         25% { transform: translateX(-10px); }
         75% { transform: translateX(10px); }
     }
+    
+    /* Table responsive helper */
+    @media (max-width: 768px) {
+        .responsive-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .responsive-table table {
+            min-width: 600px;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <!-- En-tête -->
-    <div class="bg-gradient-to-r from-green-600 to-green-800 rounded-2xl shadow-2xl p-8 text-white mb-8">
-        <h1 class="text-4xl font-bold mb-2">✍️ Saisie du Procès-Verbal</h1>
-        <p class="text-xl text-green-100">Enregistrez les résultats complets de votre bureau de vote</p>
+    <div class="bg-gradient-to-r from-green-600 to-green-800 rounded-lg sm:rounded-2xl shadow-2xl p-4 sm:p-6 lg:p-8 text-white mb-4 sm:mb-6 lg:mb-8">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold mb-1 sm:mb-2">✍️ Saisie du Procès-Verbal</h1>
+        <p class="text-sm sm:text-base lg:text-xl text-green-100">Enregistrez les résultats complets de votre bureau de vote</p>
     </div>
 
     {% if no_bureau %}
         <!-- Aucun bureau affecté -->
-        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-lg">
+        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 sm:p-6 rounded-lg">
             <div class="flex items-start">
                 <div class="flex-shrink-0">
-                    <svg class="w-8 h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
                 </div>
-                <div class="ml-4">
-                    <h3 class="text-lg font-semibold text-yellow-800">Aucun bureau de vote affecté</h3>
-                    <p class="text-yellow-700 mt-2">
+                <div class="ml-3 sm:ml-4 flex-1">
+                    <h3 class="text-base sm:text-lg font-semibold text-yellow-800">Aucun bureau de vote affecté</h3>
+                    <p class="text-sm sm:text-base text-yellow-700 mt-2">
                         Votre compte n'a pas encore été affecté à un bureau de vote. 
                         Veuillez contacter l'administrateur.
                     </p>
@@ -49,20 +62,20 @@
         </div>
     {% else %}
         <!-- Informations du bureau -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">📍 Votre Bureau de Vote</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-blue-50 rounded-lg p-4">
-                    <p class="text-sm text-gray-600 font-semibold">Centre de vote</p>
-                    <p class="text-lg font-bold text-gray-800 mt-1">{{ bureau.centre_vote.nom }}</p>
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 mb-4 sm:mb-6 lg:mb-8">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-800 mb-3 sm:mb-4">📍 Votre Bureau de Vote</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                <div class="bg-blue-50 rounded-lg p-3 sm:p-4">
+                    <p class="text-xs sm:text-sm text-gray-600 font-semibold">Centre de vote</p>
+                    <p class="text-sm sm:text-base lg:text-lg font-bold text-gray-800 mt-1 break-words">{{ bureau.centre_vote.nom }}</p>
                 </div>
-                <div class="bg-green-50 rounded-lg p-4">
-                    <p class="text-sm text-gray-600 font-semibold">Bureau n°</p>
-                    <p class="text-lg font-bold text-gray-800 mt-1">{{ bureau.numero }}</p>
+                <div class="bg-green-50 rounded-lg p-3 sm:p-4">
+                    <p class="text-xs sm:text-sm text-gray-600 font-semibold">Bureau n°</p>
+                    <p class="text-sm sm:text-base lg:text-lg font-bold text-gray-800 mt-1">{{ bureau.numero }}</p>
                 </div>
-                <div class="bg-purple-50 rounded-lg p-4">
-                    <p class="text-sm text-gray-600 font-semibold">Sous-préfecture</p>
-                    <p class="text-sm font-bold text-gray-800 mt-1">{{ bureau.centre_vote.sous_prefecture.nom }}</p>
+                <div class="bg-purple-50 rounded-lg p-3 sm:p-4 sm:col-span-2 lg:col-span-1">
+                    <p class="text-xs sm:text-sm text-gray-600 font-semibold">Sous-préfecture</p>
+                    <p class="text-xs sm:text-sm font-bold text-gray-800 mt-1 break-words">{{ bureau.centre_vote.sous_prefecture.nom }}</p>
                 </div>
             </div>
         </div>
@@ -73,188 +86,191 @@
             {{ management_form }}
             
             <!-- Section 1: Données globales du PV -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800">📊 Données Globales du Bureau</h2>
+            <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2 sm:gap-0">
+                    <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800">📊 Données Globales du Bureau</h2>
                     {% if pv_existant %}
-                        <span class="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-semibold">
+                        <span class="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-500 text-white rounded-full text-xs sm:text-sm font-semibold">
                             ✓ PV enregistré
                         </span>
                     {% endif %}
                 </div>
 
                 <!-- Nombre d'inscrits en premier -->
-                <div class="mb-6 bg-blue-50 rounded-lg p-6 border-2 border-blue-200">
-                    <label class="block text-sm font-bold text-blue-900 mb-2">
+                <div class="mb-4 sm:mb-6 bg-blue-50 rounded-lg p-4 sm:p-6 border-2 border-blue-200">
+                    <label class="block text-xs sm:text-sm font-bold text-blue-900 mb-2">
                         📋 Nombre d'inscrits dans ce bureau <span class="text-red-500">*</span>
                     </label>
                     {{ pv_form.nombre_inscrits }}
                     {% if pv_form.nombre_inscrits.errors %}
-                        <p class="mt-2 text-sm text-red-600">{{ pv_form.nombre_inscrits.errors.0 }}</p>
+                        <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.nombre_inscrits.errors.0 }}</p>
                     {% endif %}
                     <p class="text-xs text-blue-700 mt-2">
                         ℹ️ Nombre total d'électeurs inscrits dans votre bureau (selon la liste électorale)
                     </p>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-4 sm:mb-6">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
                             Nombre de votants <span class="text-red-500">*</span>
                         </label>
                         {{ pv_form.nombre_votants }}
                         {% if pv_form.nombre_votants.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ pv_form.nombre_votants.errors.0 }}</p>
+                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.nombre_votants.errors.0 }}</p>
                         {% endif %}
                         <p class="text-xs text-gray-500 mt-1" id="max-votants-info">Ne peut pas dépasser les inscrits</p>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
                             Bulletins nuls
                         </label>
                         {{ pv_form.bulletins_nuls }}
                         {% if pv_form.bulletins_nuls.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ pv_form.bulletins_nuls.errors.0 }}</p>
+                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.bulletins_nuls.errors.0 }}</p>
                         {% endif %}
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <div class="sm:col-span-2 lg:col-span-1">
+                        <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
                             Bulletins blancs
                         </label>
                         {{ pv_form.bulletins_blancs }}
                         {% if pv_form.bulletins_blancs.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ pv_form.bulletins_blancs.errors.0 }}</p>
+                            <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.bulletins_blancs.errors.0 }}</p>
                         {% endif %}
                     </div>
                 </div>
 
                 <!-- Calcul automatique des suffrages exprimés -->
-                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                    <div class="flex items-center justify-between">
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-3 sm:p-4 mb-4 sm:mb-6">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                         <div>
-                            <p class="text-sm font-semibold text-gray-700">Suffrages exprimés (calculé automatiquement)</p>
+                            <p class="text-xs sm:text-sm font-semibold text-gray-700">Suffrages exprimés (calculé automatiquement)</p>
                             <p class="text-xs text-gray-600 mt-1">= Votants - Nuls - Blancs</p>
                         </div>
-                        <div id="suffrages-display" class="text-3xl font-bold text-blue-600">
+                        <div id="suffrages-display" class="text-2xl sm:text-3xl font-bold text-blue-600">
                             0
                         </div>
                     </div>
                 </div>
 
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                <div class="mb-4 sm:mb-6">
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
                         Photo du procès-verbal <span class="text-red-500">*</span>
                     </label>
                     {{ pv_form.photo_pv }}
                     {% if pv_form.photo_pv.errors %}
-                        <p class="mt-2 text-sm text-red-600">{{ pv_form.photo_pv.errors.0 }}</p>
+                        <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.photo_pv.errors.0 }}</p>
                     {% endif %}
                     {% if pv_existant and pv_existant.photo_pv %}
                         <div class="mt-3">
-                            <p class="text-sm text-gray-600 mb-2">Photo actuelle :</p>
-                            <img src="{{ pv_existant.photo_pv.url }}" alt="PV" class="w-32 h-32 object-cover rounded border cursor-pointer" onclick="openImageModal('{{ pv_existant.photo_pv.url }}')">
+                            <p class="text-xs sm:text-sm text-gray-600 mb-2">Photo actuelle :</p>
+                            <img src="{{ pv_existant.photo_pv.url }}" alt="PV" class="w-24 h-24 sm:w-32 sm:h-32 object-cover rounded border cursor-pointer" onclick="openImageModal('{{ pv_existant.photo_pv.url }}')">
                         </div>
                     {% endif %}
                 </div>
 
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label class="block text-xs sm:text-sm font-semibold text-gray-700 mb-2">
                         Observations (optionnel)
                     </label>
                     {{ pv_form.observations }}
                     {% if pv_form.observations.errors %}
-                        <p class="mt-2 text-sm text-red-600">{{ pv_form.observations.errors.0 }}</p>
+                        <p class="mt-2 text-xs sm:text-sm text-red-600">{{ pv_form.observations.errors.0 }}</p>
                     {% endif %}
                 </div>
             </div>
 
             <!-- Section 2: Résultats par candidat -->
-            <div class="bg-white rounded-xl shadow-lg p-8 mb-6">
-                <h2 class="text-2xl font-bold text-gray-800 mb-6">🎯 Résultats par Candidat</h2>
+            <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6">
+                <h2 class="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">🎯 Résultats par Candidat</h2>
                 
-                <div class="overflow-x-auto">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">N°</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidat</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Parti</th>
-                                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Nombre de voix</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            {% for candidat, form in candidats_forms %}
-                            <tr class="candidat-row">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full text-blue-600 font-bold">
-                                        {{ candidat.numero_candidat|default:forloop.counter }}
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-bold text-gray-900">{{ candidat.get_full_name }}</div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-600">{{ candidat.parti_politique|default:"Indépendant" }}</div>
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    {{ form.nombre_voix }}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot class="bg-gray-100">
-                            <tr>
-                                <td colspan="3" class="px-6 py-4 text-right font-bold text-gray-700">
-                                    TOTAL DES VOIX :
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    <div id="total-voix" class="text-2xl font-bold text-gray-900">0</div>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="responsive-table">
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+                        <table class="min-w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">N°</th>
+                                    <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase">Candidat</th>
+                                    <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Parti</th>
+                                    <th class="px-2 sm:px-4 lg:px-6 py-2 sm:py-3 text-center text-xs font-medium text-gray-500 uppercase">Voix</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for candidat, form in candidats_forms %}
+                                <tr class="candidat-row">
+                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 whitespace-nowrap">
+                                        <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-full text-blue-600 font-bold text-xs sm:text-sm">
+                                            {{ candidat.numero_candidat|default:forloop.counter }}
+                                        </div>
+                                    </td>
+                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4">
+                                        <div class="text-xs sm:text-sm font-bold text-gray-900 break-words max-w-[150px] sm:max-w-none">{{ candidat.get_full_name }}</div>
+                                        <div class="text-xs text-gray-600 sm:hidden mt-1">{{ candidat.parti_politique|default:"Indépendant"|truncatewords:2 }}</div>
+                                    </td>
+                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 hidden sm:table-cell">
+                                        <div class="text-xs sm:text-sm text-gray-600 break-words max-w-[200px]">{{ candidat.parti_politique|default:"Indépendant" }}</div>
+                                    </td>
+                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 text-center">
+                                        {{ form.nombre_voix }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="bg-gray-100">
+                                <tr>
+                                    <td colspan="3" class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 text-right font-bold text-gray-700 text-xs sm:text-sm">
+                                        TOTAL DES VOIX :
+                                    </td>
+                                    <td class="px-2 sm:px-4 lg:px-6 py-2 sm:py-4 text-center">
+                                        <div id="total-voix" class="text-xl sm:text-2xl font-bold text-gray-900">0</div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Validation visuelle -->
-                <div id="validation-message" class="mt-6 p-4 rounded-lg border hidden">
-                    <p class="font-semibold"></p>
+                <div id="validation-message" class="mt-4 sm:mt-6 p-3 sm:p-4 rounded-lg border hidden">
+                    <p class="font-semibold text-xs sm:text-sm"></p>
                 </div>
             </div>
 
             <!-- Bouton de soumission -->
-            <div class="flex space-x-4">
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button 
                     type="submit" 
-                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105">
-                    <span class="text-lg">💾 {% if pv_existant %}Mettre à jour{% else %}Enregistrer{% endif %} le procès-verbal</span>
+                    class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 sm:py-4 px-4 sm:px-6 rounded-lg transition shadow-lg hover:shadow-xl transform hover:scale-105 text-sm sm:text-base lg:text-lg">
+                    <span>💾 {% if pv_existant %}Mettre à jour{% else %}Enregistrer{% endif %} le procès-verbal</span>
                 </button>
             </div>
         </form>
 
         <!-- Aide -->
-        <div class="mt-8 bg-gray-50 rounded-xl p-6 border border-gray-200">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">💡 Instructions</h3>
-            <ul class="space-y-2 text-gray-700">
+        <div class="mt-6 sm:mt-8 bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200">
+            <h3 class="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">💡 Instructions</h3>
+            <ul class="space-y-2 text-xs sm:text-sm text-gray-700">
                 <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
                     <span><strong>IMPORTANT :</strong> Renseignez d'abord le <strong>nombre d'inscrits</strong> de votre bureau (selon la liste électorale)</span>
                 </li>
                 <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
                     <span>Remplissez ensuite les données globales (votants, nuls, blancs)</span>
                 </li>
                 <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
                     <span>Saisissez le nombre de voix pour chaque candidat</span>
                 </li>
                 <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
                     <span>La somme des voix doit égaler les suffrages exprimés</span>
                 </li>
                 <li class="flex items-start">
-                    <span class="text-green-500 mr-2 mt-1">✓</span>
+                    <span class="text-green-500 mr-2 mt-0.5">✓</span>
                     <span>La photo du PV doit être nette et lisible</span>
                 </li>
             </ul>
@@ -264,11 +280,11 @@
 
 <!-- Modal pour agrandir la photo -->
 <div id="imageModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4" onclick="closeImageModal()">
-    <div class="relative max-w-4xl max-h-full">
-        <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white bg-red-500 hover:bg-red-600 rounded-full w-10 h-10 flex items-center justify-center text-2xl z-10">
+    <div class="relative max-w-full max-h-full">
+        <button onclick="closeImageModal()" class="absolute top-2 right-2 sm:top-4 sm:right-4 text-white bg-red-500 hover:bg-red-600 rounded-full w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center text-xl sm:text-2xl z-10">
             ×
         </button>
-        <img id="modalImage" src="" alt="Procès-verbal" class="max-w-full max-h-screen rounded-lg">
+        <img id="modalImage" src="" alt="Procès-verbal" class="max-w-full max-h-[90vh] rounded-lg">
     </div>
 </div>
 
@@ -366,11 +382,13 @@
         const modalImage = document.getElementById('modalImage');
         modalImage.src = imageUrl;
         modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
     }
     
     function closeImageModal() {
         const modal = document.getElementById('imageModal');
         modal.classList.add('hidden');
+        document.body.style.overflow = '';
     }
     
     document.addEventListener('keydown', function(event) {

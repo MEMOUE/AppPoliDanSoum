@@ -2,7 +2,8 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="Gestion des Résultats Électoraux - Côte d'Ivoire">
     <title>{% block title %}Gestion Résultats Électoraux{% endblock %}</title>
     
     <!-- Tailwind CSS CDN -->
@@ -16,6 +17,9 @@
                     colors: {
                         primary: '#1e40af',
                         secondary: '#7c3aed',
+                    },
+                    screens: {
+                        'xs': '475px',
                     }
                 }
             }
@@ -30,68 +34,142 @@
         .animate-fadeIn {
             animation: fadeIn 0.3s ease-out;
         }
+        
+        /* Amélioration de la lisibilité sur petits écrans */
+        @media (max-width: 640px) {
+            body {
+                font-size: 14px;
+            }
+            h1 {
+                font-size: 1.5rem !important;
+            }
+            h2 {
+                font-size: 1.25rem !important;
+            }
+        }
+        
+        /* Scroll horizontal pour les tableaux sur mobile */
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Menu mobile */
+        .mobile-menu {
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .mobile-menu.hidden {
+            transform: translateX(100%);
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
     <!-- Navigation -->
-    <nav class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
-        <div class="container mx-auto px-4">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center space-x-4">
-                    <a href="{% url 'home' %}" class="flex items-center space-x-2 hover:opacity-80 transition">
-                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+    <nav class="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-2 sm:px-4">
+            <div class="flex items-center justify-between h-14 sm:h-16">
+                <!-- Logo et titre -->
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <a href="{% url 'home' %}" class="flex items-center space-x-1 sm:space-x-2 hover:opacity-80 transition">
+                        <svg class="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                         </svg>
-                        <span class="text-xl font-bold">Élections CI</span>
+                        <span class="text-base sm:text-xl font-bold hidden xs:inline">Élections CI</span>
+                        <span class="text-base font-bold xs:hidden">CI</span>
                     </a>
                 </div>
                 
-                <div class="flex items-center space-x-4">
+                <!-- Desktop Navigation -->
+                <div class="hidden md:flex items-center space-x-2 lg:space-x-4">
                     {% if user.is_authenticated %}
-                        <span class="text-sm">
+                        <span class="text-xs lg:text-sm truncate max-w-[150px] lg:max-w-none">
                             👤 {{ user.get_full_name }}
                             {% if user.role == 'candidat' %}
-                                <span class="ml-2 px-2 py-1 bg-yellow-500 text-xs rounded-full">Candidat</span>
+                                <span class="ml-1 lg:ml-2 px-1.5 lg:px-2 py-0.5 lg:py-1 bg-yellow-500 text-xs rounded-full">Candidat</span>
                             {% elif user.role == 'representant' %}
-                                <span class="ml-2 px-2 py-1 bg-green-500 text-xs rounded-full">Représentant</span>
+                                <span class="ml-1 lg:ml-2 px-1.5 lg:px-2 py-0.5 lg:py-1 bg-green-500 text-xs rounded-full">Représentant</span>
                             {% endif %}
                         </span>
                         
                         {% if user.role == 'candidat' %}
-                            <a href="{% url 'dashboard_candidat' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition">
-                                📊 Tableau de bord
+                            <a href="{% url 'dashboard_general' %}" class="hover:bg-blue-700 px-2 lg:px-3 py-1.5 lg:py-2 rounded transition text-xs lg:text-sm">
+                                📊 Dashboard
                             </a>
                         {% elif user.role == 'representant' %}
-                            <a href="{% url 'saisie_resultat' %}" class="hover:bg-blue-700 px-3 py-2 rounded transition">
-                                ✍️ Saisie résultats
+                            <a href="{% url 'saisie_resultat' %}" class="hover:bg-blue-700 px-2 lg:px-3 py-1.5 lg:py-2 rounded transition text-xs lg:text-sm">
+                                ✍️ Saisie
                             </a>
                         {% endif %}
                         
-                        <a href="{% url 'logout' %}" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded transition">
+                        <a href="{% url 'logout' %}" class="bg-red-500 hover:bg-red-600 px-2 lg:px-4 py-1.5 lg:py-2 rounded transition text-xs lg:text-sm">
                             Déconnexion
                         </a>
                     {% else %}
-                        <a href="{% url 'login' %}" class="bg-white text-blue-600 hover:bg-gray-100 px-6 py-2 rounded-lg font-semibold transition">
+                        <a href="{% url 'login' %}" class="bg-white text-blue-600 hover:bg-gray-100 px-4 lg:px-6 py-1.5 lg:py-2 rounded-lg font-semibold transition text-xs lg:text-sm">
                             Se connecter
                         </a>
                     {% endif %}
                 </div>
+                
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="p-2 rounded-lg hover:bg-blue-700 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-blue-700 border-t border-blue-600">
+            <div class="px-2 py-3 space-y-2">
+                {% if user.is_authenticated %}
+                    <div class="px-3 py-2 text-sm border-b border-blue-600">
+                        👤 {{ user.get_full_name }}
+                        {% if user.role == 'candidat' %}
+                            <span class="ml-2 px-2 py-0.5 bg-yellow-500 text-xs rounded-full">Candidat</span>
+                        {% elif user.role == 'representant' %}
+                            <span class="ml-2 px-2 py-0.5 bg-green-500 text-xs rounded-full">Représentant</span>
+                        {% endif %}
+                    </div>
+                    
+                    {% if user.role == 'candidat' %}
+                        <a href="{% url 'dashboard_general' %}" class="block px-3 py-2 hover:bg-blue-600 rounded text-sm">
+                            📊 Tableau de bord
+                        </a>
+                    {% elif user.role == 'representant' %}
+                        <a href="{% url 'saisie_resultat' %}" class="block px-3 py-2 hover:bg-blue-600 rounded text-sm">
+                            ✍️ Saisie résultats
+                        </a>
+                    {% endif %}
+                    
+                    <a href="{% url 'logout' %}" class="block px-3 py-2 bg-red-500 hover:bg-red-600 rounded text-sm">
+                        Déconnexion
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="block px-3 py-2 bg-white text-blue-600 hover:bg-gray-100 rounded font-semibold text-sm">
+                        Se connecter
+                    </a>
+                {% endif %}
             </div>
         </div>
     </nav>
 
     <!-- Messages Flash -->
     {% if messages %}
-        <div class="container mx-auto px-4 mt-4">
+        <div class="container mx-auto px-2 sm:px-4 mt-2 sm:mt-4">
             {% for message in messages %}
-                <div class="animate-fadeIn mb-4 p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 border-l-4 border-green-500 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-700{% elif message.tags == 'warning' %}bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700{% else %}bg-blue-100 border-l-4 border-blue-500 text-blue-700{% endif %}">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
+                <div class="animate-fadeIn mb-2 sm:mb-4 p-3 sm:p-4 rounded-lg text-sm sm:text-base {% if message.tags == 'success' %}bg-green-100 border-l-4 border-green-500 text-green-700{% elif message.tags == 'error' %}bg-red-100 border-l-4 border-red-500 text-red-700{% elif message.tags == 'warning' %}bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700{% else %}bg-blue-100 border-l-4 border-blue-500 text-blue-700{% endif %}">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0 text-lg sm:text-xl">
                             {% if message.tags == 'success' %}✓{% elif message.tags == 'error' %}✗{% elif message.tags == 'warning' %}⚠{% else %}ℹ{% endif %}
                         </div>
-                        <div class="ml-3">{{ message }}</div>
+                        <div class="ml-2 sm:ml-3 flex-1 break-words">{{ message }}</div>
                     </div>
                 </div>
             {% endfor %}
@@ -99,23 +177,42 @@
     {% endif %}
 
     <!-- Contenu principal -->
-    <main class="flex-grow container mx-auto px-4 py-8">
+    <main class="flex-grow container mx-auto px-2 sm:px-4 py-4 sm:py-8">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
     <footer class="bg-gray-800 text-white mt-auto">
-        <div class="container mx-auto px-4 py-6">
+        <div class="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
             <div class="text-center">
-                <p class="text-sm">
+                <p class="text-xs sm:text-sm">
                     © 2025 Gestion des Résultats Électoraux - Côte d'Ivoire
                 </p>
-                <p class="text-xs text-gray-400 mt-2">
+                <p class="text-xs text-gray-400 mt-1 sm:mt-2">
                     Développé pour la transparence électorale
                 </p>
             </div>
         </div>
     </footer>
+
+    <!-- Script pour le menu mobile -->
+    <script>
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // Fermer le menu si on clique en dehors
+            document.addEventListener('click', (e) => {
+                if (!mobileMenuBtn.contains(e.target) && !mobileMenu.contains(e.target)) {
+                    mobileMenu.classList.add('hidden');
+                }
+            });
+        }
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>

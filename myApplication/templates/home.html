@@ -5,13 +5,13 @@
 {% block content %}
 <div class="max-w-6xl mx-auto">
     <!-- Hero Section -->
-    <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl shadow-2xl p-12 text-white mb-12">
+    <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg sm:rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 text-white mb-6 sm:mb-8 lg:mb-12">
         <div class="text-center">
-            <h1 class="text-5xl font-bold mb-4">🗳️ Gestion des Résultats Électoraux</h1>
-            <p class="text-xl text-blue-100 mb-8">Plateforme de suivi et gestion des résultats électoraux en Côte d'Ivoire</p>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold mb-2 sm:mb-4">🗳️ Gestion des Résultats Électoraux</h1>
+            <p class="text-base sm:text-lg lg:text-xl text-blue-100 mb-4 sm:mb-6 lg:mb-8">Plateforme de suivi et gestion des résultats électoraux en Côte d'Ivoire</p>
             
             {% if not user.is_authenticated %}
-                <a href="{% url 'login' %}" class="inline-block bg-white text-blue-600 px-8 py-4 rounded-lg font-bold text-lg hover:bg-gray-100 transition transform hover:scale-105">
+                <a href="{% url 'login' %}" class="inline-block bg-white text-blue-600 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg hover:bg-gray-100 transition transform hover:scale-105">
                     Se connecter
                 </a>
             {% endif %}
@@ -19,43 +19,43 @@
     </div>
 
     <!-- Statistiques -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-semibold uppercase">Sous-préfectures</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ total_sous_prefectures }}</p>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6 sm:mb-8 lg:mb-12">
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 border-l-4 border-blue-500 hover:shadow-xl transition">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex-1">
+                    <p class="text-gray-600 text-xs sm:text-sm font-semibold uppercase">Sous-préfectures</p>
+                    <p class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mt-1 sm:mt-2">{{ total_sous_prefectures }}</p>
                 </div>
-                <div class="bg-blue-100 rounded-full p-4">
-                    <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-blue-100 rounded-full p-2 sm:p-3 lg:p-4 mt-2 sm:mt-0 self-end sm:self-auto">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-semibold uppercase">Centres de vote</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ total_centres }}</p>
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 border-l-4 border-green-500 hover:shadow-xl transition">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex-1">
+                    <p class="text-gray-600 text-xs sm:text-sm font-semibold uppercase">Centres de vote</p>
+                    <p class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mt-1 sm:mt-2">{{ total_centres }}</p>
                 </div>
-                <div class="bg-green-100 rounded-full p-4">
-                    <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-green-100 rounded-full p-2 sm:p-3 lg:p-4 mt-2 sm:mt-0 self-end sm:self-auto">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a1 1 0 110 2h-3a1 1 0 01-1-1v-2a1 1 0 00-1-1H9a1 1 0 00-1 1v2a1 1 0 01-1 1H4a1 1 0 110-2V4zm3 1h2v2H7V5zm2 4H7v2h2V9zm2-4h2v2h-2V5zm2 4h-2v2h2V9z" clip-rule="evenodd"/>
                     </svg>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-semibold uppercase">Bureaux de vote</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ total_bureaux }}</p>
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 border-l-4 border-purple-500 hover:shadow-xl transition">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex-1">
+                    <p class="text-gray-600 text-xs sm:text-sm font-semibold uppercase">Bureaux de vote</p>
+                    <p class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mt-1 sm:mt-2">{{ total_bureaux }}</p>
                 </div>
-                <div class="bg-purple-100 rounded-full p-4">
-                    <svg class="w-8 h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-purple-100 rounded-full p-2 sm:p-3 lg:p-4 mt-2 sm:mt-0 self-end sm:self-auto">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                         <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
                     </svg>
@@ -63,14 +63,14 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-semibold uppercase">Résultats saisis</p>
-                    <p class="text-4xl font-bold text-gray-800 mt-2">{{ resultats_saisis }}</p>
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 border-l-4 border-yellow-500 hover:shadow-xl transition">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex-1">
+                    <p class="text-gray-600 text-xs sm:text-sm font-semibold uppercase">Résultats saisis</p>
+                    <p class="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800 mt-1 sm:mt-2">{{ resultats_saisis }}</p>
                 </div>
-                <div class="bg-yellow-100 rounded-full p-4">
-                    <svg class="w-8 h-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                <div class="bg-yellow-100 rounded-full p-2 sm:p-3 lg:p-4 mt-2 sm:mt-0 self-end sm:self-auto">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                         <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm9.707 5.707a1 1 0 00-1.414-1.414L9 12.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
                     </svg>
@@ -80,62 +80,62 @@
     </div>
 
     <!-- Fonctionnalités -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div class="bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition">
-            <div class="flex items-start">
-                <div class="bg-green-100 rounded-full p-3 mr-4">
-                    <svg class="w-8 h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-8 lg:mb-12">
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 hover:shadow-2xl transition">
+            <div class="flex flex-col sm:flex-row sm:items-start">
+                <div class="bg-green-100 rounded-full p-2 sm:p-3 mb-3 sm:mb-0 sm:mr-4 self-start">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
                         <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
                     </svg>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Pour les Représentants</h3>
-                    <p class="text-gray-600 mb-4">
+                <div class="flex-1">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Pour les Représentants</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
                         Saisissez les résultats de votre bureau de vote en temps réel et téléchargez la photo du procès-verbal officiel.
                     </p>
-                    <ul class="space-y-2 text-gray-700">
-                        <li class="flex items-center">
-                            <span class="text-green-500 mr-2">✓</span>
-                            Saisie rapide et sécurisée
+                    <ul class="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2 mt-0.5">✓</span>
+                            <span>Saisie rapide et sécurisée</span>
                         </li>
-                        <li class="flex items-center">
-                            <span class="text-green-500 mr-2">✓</span>
-                            Upload de photos des PV
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2 mt-0.5">✓</span>
+                            <span>Upload de photos des PV</span>
                         </li>
-                        <li class="flex items-center">
-                            <span class="text-green-500 mr-2">✓</span>
-                            Validation automatique
+                        <li class="flex items-start">
+                            <span class="text-green-500 mr-2 mt-0.5">✓</span>
+                            <span>Validation automatique</span>
                         </li>
                     </ul>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-8 hover:shadow-2xl transition">
-            <div class="flex items-start">
-                <div class="bg-blue-100 rounded-full p-3 mr-4">
-                    <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+        <div class="bg-white rounded-lg sm:rounded-xl shadow-lg p-4 sm:p-6 lg:p-8 hover:shadow-2xl transition">
+            <div class="flex flex-col sm:flex-row sm:items-start">
+                <div class="bg-blue-100 rounded-full p-2 sm:p-3 mb-3 sm:mb-0 sm:mr-4 self-start">
+                    <svg class="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/>
                     </svg>
                 </div>
-                <div>
-                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Pour les Candidats</h3>
-                    <p class="text-gray-600 mb-4">
+                <div class="flex-1">
+                    <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-2">Pour les Candidats</h3>
+                    <p class="text-sm sm:text-base text-gray-600 mb-3 sm:mb-4">
                         Consultez vos résultats en temps réel avec des statistiques détaillées par bureau, centre et sous-préfecture.
                     </p>
-                    <ul class="space-y-2 text-gray-700">
-                        <li class="flex items-center">
-                            <span class="text-blue-500 mr-2">✓</span>
-                            Tableau de bord en temps réel
+                    <ul class="space-y-1 sm:space-y-2 text-xs sm:text-sm text-gray-700">
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2 mt-0.5">✓</span>
+                            <span>Tableau de bord en temps réel</span>
                         </li>
-                        <li class="flex items-center">
-                            <span class="text-blue-500 mr-2">✓</span>
-                            Statistiques détaillées
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2 mt-0.5">✓</span>
+                            <span>Statistiques détaillées</span>
                         </li>
-                        <li class="flex items-center">
-                            <span class="text-blue-500 mr-2">✓</span>
-                            Calcul automatique des pourcentages
+                        <li class="flex items-start">
+                            <span class="text-blue-500 mr-2 mt-0.5">✓</span>
+                            <span>Calcul automatique des pourcentages</span>
                         </li>
                     </ul>
                 </div>
@@ -145,12 +145,12 @@
 
     <!-- Call to Action -->
     {% if not user.is_authenticated %}
-    <div class="bg-gradient-to-r from-purple-600 to-purple-800 rounded-2xl shadow-xl p-8 text-white text-center">
-        <h2 class="text-3xl font-bold mb-4">Prêt à commencer ?</h2>
-        <p class="text-lg text-purple-100 mb-6">
+    <div class="bg-gradient-to-r from-purple-600 to-purple-800 rounded-lg sm:rounded-2xl shadow-xl p-6 sm:p-8 text-white text-center">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-2 sm:mb-4">Prêt à commencer ?</h2>
+        <p class="text-sm sm:text-base lg:text-lg text-purple-100 mb-4 sm:mb-6">
             Connectez-vous pour accéder à votre espace personnalisé
         </p>
-        <a href="{% url 'login' %}" class="inline-block bg-white text-purple-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition transform hover:scale-105">
+        <a href="{% url 'login' %}" class="inline-block bg-white text-purple-600 px-6 sm:px-8 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base hover:bg-gray-100 transition transform hover:scale-105">
             Se connecter maintenant
         </a>
     </div>
